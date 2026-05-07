@@ -1,0 +1,15 @@
+# Configured but not enforced (CONTEXT D-Discretion); promoted to enforcement
+# when team conventions stabilize. Pitfall 9 mitigation: gitleaks scans every
+# commit for accidentally added secrets.
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
