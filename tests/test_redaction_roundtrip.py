@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from hypothesis import given, settings, strategies as st
+from hypothesis import HealthCheck, given, settings, strategies as st
 from wifi_diag_schema import TelemetryFrame
 
 from agent.redaction import DENY_PATTERNS, bssid_hash, redact_to_schema
@@ -32,8 +32,15 @@ PII_PAYLOADS = st.fixed_dictionaries({
 
 
 @given(PII_PAYLOADS)
-@settings(max_examples=200, deadline=None)
-def test_redaction_strips_all_pii(payload, tmp_state_dir):
+@settings(
+    max_examples=200,
+    deadline=None,
+    # tmp_state_dir is intentionally shared across hypothesis examples — the
+    # per-install salt being deterministic across the 200 examples is the
+    # intended behavior (and matches production: one salt per install).
+    suppress_health_check=[HealthCheck.function_scoped_fixture],
+)
+def test_redaction_strips_all_pii(tmp_state_dir, payload):
     frame = redact_to_schema(payload)
     assert isinstance(frame, TelemetryFrame)
     dump = frame.model_dump_json()
