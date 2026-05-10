@@ -30,9 +30,33 @@ def _paused() -> bool:
     return (Path(platformdirs.user_state_dir("wifi-diag")) / "daemon.paused").exists()
 
 
+# Module-level lazy singleton — initialized on first tick to keep daemon
+# import lightweight and to avoid spurious OS-permission prompts at import time.
+_collector_instance = None
+
+
+def _get_collector():
+    """Lazy per-OS collector init. Plan 04-02 wires WindowsCollector;
+    plans 04-03/04-04 wire MacOSCollector / LinuxCollector via the same
+    ``make_collector`` dispatcher."""
+    global _collector_instance
+    if _collector_instance is None:
+        from agent.collectors import make_collector
+        _collector_instance = make_collector()
+    return _collector_instance
+
+
 async def _sampling_tick() -> None:
-    """Phase 4 placeholder. 04-02/03/04 will wire `make_collector().sample()` here."""
-    # NO-OP at plan 04-01 level. Per-OS collectors plug in via plan 04-02/03/04.
+    """One sampling tick. Logs and continues on collector exceptions — a
+    transient OS-event-log read failure must NOT crash the daemon."""
+    from agent import buffer
+
+    try:
+        collector = _get_collector()
+        frame = collector.sample()
+        buffer.append_frame(frame)
+    except Exception as exc:
+        log.warning("sample tick failed: %s", exc)
     await asyncio.sleep(0)
 
 
