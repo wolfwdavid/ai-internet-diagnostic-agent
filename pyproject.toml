@@ -33,13 +33,22 @@ dev = [
 
 # Per-OS extras — Phase 4 will populate; declared here so the package layout is stable.
 windows = [
-    # Phase 4 will add: "pywin32>=308", "wmi>=1.5"
+    # Plan 04-02: WLAN-AutoConfig event log via pywin32 (D-PRIV-03 scope).
+    # wmi is NOT added at v1 — D-PRIV-03 keeps Win event-log scope to WLAN-AutoConfig only.
+    "pywin32>=308; sys_platform == 'win32'",
 ]
 macos = [
-    # Phase 4 will add: "pyobjc-framework-CoreWLAN"
+    # Plan 04-03: CoreWLAN for BSSID/SSID/RSSI; CoreLocation gated by agent doctor for
+    # Location-Services detection (D-PRIV-04 default = `log show` non-sudo; `wdutil`
+    # opt-in via `WIFI_DIAG_USE_WDUTIL=1` env var). pyobjc 10.3+ supports macOS 12+.
+    "pyobjc-framework-CoreWLAN>=10.3; sys_platform == 'darwin'",
+    "pyobjc-framework-CoreLocation>=10.3; sys_platform == 'darwin'",
 ]
 linux = [
-    # Phase 4 will add: "dbus-next" (or "pydbus"), "systemd-python"
+    # Plan 04-04: NetworkManager + wpa_supplicant via D-Bus (Pitfall 12 supported stack).
+    # systemd-python NOT added at v1 — RESEARCH.md picks D-Bus first; journalctl
+    # fallback deferred to v1.x.
+    "dbus-next>=0.2.3; sys_platform == 'linux'",
 ]
 
 [project.scripts]
