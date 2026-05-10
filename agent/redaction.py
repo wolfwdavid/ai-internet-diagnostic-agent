@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Any, Optional
+from typing import Any
 
 from wifi_diag_schema import TelemetryFrame
 from wifi_diag_schema.telemetry import PingContinuity
@@ -85,7 +85,7 @@ def _coerce(value: Any, allowed: set, default: str | int) -> str | int:
 # ---------------------------------------------------------------------------
 # BSSID hashing: SHA-256 with per-install salt.
 # ---------------------------------------------------------------------------
-def bssid_hash(mac: Optional[str]) -> Optional[str]:
+def bssid_hash(mac: str | None) -> str | None:
     """Return ``sha256(salt || mac)`` hex digest, or ``None`` if mac is ``None``.
 
     Output matches the schema regex ``^[0-9a-f]{64}$``. Same MAC + same

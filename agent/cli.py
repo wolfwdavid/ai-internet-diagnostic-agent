@@ -96,14 +96,20 @@ def _run_diagnosis(consent: ConsentLevel) -> str:
 
 @app.command()
 def doctor() -> None:
-    """Per-OS health check (plan 04-05 implements full table)."""
-    console.print("[yellow]agent doctor — full implementation in plan 04-05[/yellow]")
+    """Per-OS health check (D-PRIV-02)."""
+    from agent.doctor import render_doctor_table
+
+    exit_code = render_doctor_table()
+    if exit_code != 0:
+        raise typer.Exit(code=exit_code)
 
 
 @app.command()
 def privacy() -> None:
-    """Print PRIVACY.md content + effective config (plan 04-05 implements)."""
-    console.print("[yellow]agent privacy — full implementation in plan 04-05[/yellow]")
+    """Print PRIVACY.md content + effective config (PRIV-03)."""
+    from agent.privacy import render_privacy
+
+    render_privacy()
 
 
 @app.command(name="show-telemetry")
