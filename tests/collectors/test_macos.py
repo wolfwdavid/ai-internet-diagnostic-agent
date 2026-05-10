@@ -27,7 +27,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Canned `log show --style ndjson` output — one JSON record per line.
 # Mix of association success, EAPOL handshake failure, EAP auth failure.
