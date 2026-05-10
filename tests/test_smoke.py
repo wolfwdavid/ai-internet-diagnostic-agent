@@ -5,7 +5,8 @@ from __future__ import annotations
 def test_agent_imports():
     import agent
 
-    assert agent.__version__ == "0.1.0"
+    # Phase 4 bumped to 0.4.0 (CLI surface + daemon + buffer + consent landed).
+    assert agent.__version__ == "0.4.0"
 
 
 def test_schema_dep_resolves():
@@ -16,7 +17,9 @@ def test_schema_dep_resolves():
     """
     from wifi_diag_schema import SCHEMA_VERSION, TelemetryFrame
 
-    assert SCHEMA_VERSION == "1.0.0"
+    # Schema bumped to v1.1.0 (Phase 3 D-CROSS-01) — pyproject pins
+    # wifi-diag-schema>=1.1.0,<2.0.0; assertion mirrors that resolved version.
+    assert SCHEMA_VERSION == "1.1.0"
     assert TelemetryFrame.model_config["extra"] == "forbid"
 
 

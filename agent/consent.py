@@ -7,7 +7,7 @@ No session memory — every diagnose invocation re-prompts (D-CONSENT-04 rejects
 """
 from __future__ import annotations
 
-from typing import Literal, Optional
+from typing import Literal
 
 from rich.console import Console
 from rich.prompt import Prompt
@@ -26,7 +26,7 @@ _PROMPT_BODY = (
 )
 
 
-def prompt_consent(non_interactive: Optional[ConsentLevel] = None) -> ConsentLevel:
+def prompt_consent(non_interactive: ConsentLevel | None = None) -> ConsentLevel:
     """Per-event consent prompt. D-CONSENT-04 escape: pass non_interactive to skip stdin.
 
     D-CONSENT-02 (Phase 4): cloud options are disabled. The non-interactive
