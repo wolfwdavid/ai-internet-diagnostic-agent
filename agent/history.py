@@ -68,7 +68,8 @@ def write_diagnosis(
     con = _open()
     try:
         cur = con.execute(
-            "INSERT INTO diagnoses (ts, verdict_json, telemetry_json, schema_version, consent_level) "
+            "INSERT INTO diagnoses "
+            "(ts, verdict_json, telemetry_json, schema_version, consent_level) "
             "VALUES (?, ?, ?, ?, ?)",
             (ts, verdict_json, telemetry_json, SCHEMA_VERSION, consent_level),
         )

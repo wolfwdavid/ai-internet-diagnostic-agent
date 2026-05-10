@@ -82,15 +82,43 @@ def diagnose(
 
 
 def _run_diagnosis(consent: ConsentLevel) -> str:
-    """Phase 4 stub. Plan 04-06 wires the actual inference pipeline.
+    """Local-only inference (AGENT-05) + history persistence (AGENT-07)."""
+    from agent import history, inference
 
-    For now, returns a status-only message so Task 1's CLI test
-    (`test_diagnose_consent_flag_accepts_local`) can pass with a mocker patch.
-    """
+    # 1. Snapshot recent buffer (D-AGENT-01 — last 120s rolling buffer).
     window = buffer.snapshot_recent(120)
+    if not window:
+        return (
+            "no telemetry in buffer — has the daemon been running? "
+            "Run `agent start` first."
+        )
+
+    # 2. Local-only inference. Phase 4 ships only consent=local; redacted/ssid
+    # are visibly-disabled in the consent prompt and prompt_consent() returns
+    # "local" if the user picks a cloud option (D-CONSENT-02 Phase-4 fallback).
+    if consent != "local":
+        return (
+            f"consent={consent} is not wired in Phase 4 (cloud transport ships "
+            "in Phase 5); falling back to local-only."
+        )
+
+    try:
+        verdict = inference.run_local_inference(window)
+    except Exception as exc:  # noqa: BLE001 — surface any inference failure
+        return f"inference failed: {exc}"
+
+    # 3. Persist to history (D-HISTORY-01 — Verdict + telemetry window for Reality Anchor).
+    diag_id = history.write_diagnosis(
+        verdict=verdict, telemetry_window=window, consent_level=consent
+    )
+
+    # 4. Mark the most-recent flagged drop as diagnosed (D-AGENT-02).
+    flagged = buffer.list_flagged_drops(only_undiagnosed=True)
+    if flagged:
+        buffer.mark_diagnosed(flagged[0]["id"])
+
     return (
-        f"diagnose stub: consent={consent} window_size={len(window)} "
-        "(inference wiring lands in plan 04-06)"
+        f"verdict #{diag_id}: {verdict.headline}\n  fix: {verdict.suggested_fix}"
     )
 
 
@@ -136,3 +164,90 @@ def show_telemetry(
             str(getattr(f, "bssid", ""))[:16] + "...",
         )
     console.print(table)
+
+
+# ---------------------------------------------------------------------------
+# `agent history` subcommand group (D-HISTORY-01..04)
+# ---------------------------------------------------------------------------
+history_app = typer.Typer(
+    name="history",
+    help="Local diagnosis history (D-HISTORY-01..04).",
+    no_args_is_help=True,
+)
+app.add_typer(history_app, name="history")
+
+
+@history_app.command("list")
+def history_list(
+    limit: int = typer.Option(20, "--limit", help="Max rows to show"),
+) -> None:
+    """List recent diagnoses (most recent first)."""
+    from agent import history as history_mod
+
+    rows = history_mod.list_diagnoses(limit=limit)
+    if not rows:
+        console.print("[dim]no diagnoses yet[/dim]")
+        return
+    table = Table(title=f"recent diagnoses (last {len(rows)})")
+    table.add_column("id")
+    table.add_column("ts")
+    table.add_column("schema")
+    table.add_column("consent")
+    for r in rows:
+        table.add_row(
+            str(r["id"]),
+            f"{r['ts']:.0f}",
+            r["schema_version"],
+            r["consent_level"],
+        )
+    console.print(table)
+
+
+@history_app.command("show")
+def history_show(diag_id: int) -> None:
+    """Print the full Verdict JSON for a past diagnosis."""
+    from agent import history as history_mod
+
+    full = history_mod.show_diagnosis(diag_id)
+    if full is None:
+        console.print(f"[red]no diagnosis with id={diag_id}[/red]")
+        raise typer.Exit(code=1)
+    console.print_json(full["verdict_json"])
+
+
+@history_app.command("clear")
+def history_clear(
+    keep_last: int = typer.Option(
+        0, "--keep-last", help="Keep the most-recent N rows"
+    ),
+    confirm: bool = typer.Option(
+        False, "--confirm", help="Skip the interactive confirmation"
+    ),
+) -> None:
+    """Delete history rows (with optional retention of the most recent N)."""
+    from agent import history as history_mod
+
+    if not confirm:
+        from rich.prompt import Confirm
+
+        prompt_text = (
+            f"Delete all but {keep_last} most-recent diagnoses?"
+            if keep_last
+            else "Delete ALL diagnosis history?"
+        )
+        if not Confirm.ask(prompt_text, default=False):
+            console.print("aborted")
+            raise typer.Exit(code=1)
+    n = history_mod.clear(keep_last=keep_last if keep_last > 0 else None)
+    console.print(f"deleted {n} rows")
+
+
+@history_app.command("retention")
+def history_retention(
+    days: int = typer.Argument(..., help="Retention period in days (D-HISTORY-02)"),
+) -> None:
+    """Set the history retention period (default 90 days)."""
+    from agent import history as history_mod
+
+    history_mod.set_retention_days(days)
+    console.print(f"retention set to {days} days")

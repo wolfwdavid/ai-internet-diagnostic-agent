@@ -95,7 +95,13 @@ def test_predict_verdict_loads_real_artifact(
     """
     import joblib
     import numpy as np
-    from sklearn.linear_model import LogisticRegression
+
+    # HistGradientBoostingClassifier handles NaN natively, matching the real
+    # LightGBM-backed CalibratedClassifierCV's NaN-tolerant contract — the
+    # synthetic_frame fixture has several optional telemetry fields set to None,
+    # which pandas surfaces as NaN inside _frames_to_array. LogisticRegression
+    # would reject the NaN-bearing input; HistGradientBoosting passes through.
+    from sklearn.ensemble import HistGradientBoostingClassifier
 
     from agent.inference import CLASSES, CLASSIFIER_FEATURES, _predict_verdict_impl
 
@@ -103,9 +109,11 @@ def test_predict_verdict_loads_real_artifact(
     n_classes = len(CLASSES)
     rng = np.random.default_rng(42)
     X_train = rng.normal(size=(50, n_features))
-    # Each class appears at least once so LogisticRegression sees all classes.
+    # Each class appears at least once so the classifier sees all 10 classes.
     y_train = np.tile(np.arange(n_classes), 5)[:50]
-    clf = LogisticRegression(max_iter=200).fit(X_train, y_train)
+    clf = HistGradientBoostingClassifier(max_iter=50, random_state=42).fit(
+        X_train, y_train
+    )
     artifact_path = tmp_path / "classifier.joblib"
     joblib.dump(clf, artifact_path)
 
