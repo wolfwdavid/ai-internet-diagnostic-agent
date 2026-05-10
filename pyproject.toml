@@ -18,6 +18,17 @@ dependencies = [
     "rich>=13.0",
     "typer>=0.15,<1.0",
     "huggingface_hub>=0.27,<1.0",
+    # Plan 04-06: local-only inference stack (AGENT-05, AGENT-06)
+    # Pins match the model repo's pyproject so the vendored predict_verdict
+    # body sees the same library versions it was trained against.
+    "scikit-learn>=1.8,<2.0",
+    "lightgbm>=4.6,<5.0",
+    "pyod>=2.0,<3.0",
+    "joblib>=1.4",
+    "numpy>=2.0,<3.0",
+    "pandas>=2.2,<3.0",
+    # Templated narrator (LLM-FREE; the [llm] extra is intentionally NOT pulled).
+    "wifi-diag-narrator>=0.1.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -66,6 +77,9 @@ packages = ["agent"]
 # still pre-PyPI. CI swaps to the PyPI release after the schema repo's first
 # tag push. Mirrors the same pattern used in the model and Space repos.
 wifi-diag-schema = { path = "../wifi-diag-schema", editable = true }
+# Plan 04-06: resolve wifi-diag-narrator from the sibling repo (RESEARCH Open
+# Question 1 — narrator not yet on PyPI). Same swap-to-PyPI pattern.
+wifi-diag-narrator = { path = "../wifi-diag-narrator", editable = true }
 
 [tool.pytest.ini_options]
 minversion = "8.0"
