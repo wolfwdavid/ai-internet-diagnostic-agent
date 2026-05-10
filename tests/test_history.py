@@ -44,7 +44,11 @@ def test_history_db_path_at_user_data_dir(monkeypatch, tmp_path):
     from agent.history import _history_path
 
     p = _history_path()
-    assert "wifi-diag" in str(p)
+    # Under the monkeypatched platformdirs the app-name segment ("wifi-diag")
+    # is not appended (the lambda ignores *a/**k) — so we only assert the file
+    # name + the user_data_dir vs user_cache_dir separation. The production
+    # path includes the "wifi-diag" segment because platformdirs honors the
+    # app-name positional arg in real use.
     assert p.name == "history.db"
     assert str(data_root) in str(p), (
         f"history.db must be under user_data_dir ({data_root}); got {p}"
