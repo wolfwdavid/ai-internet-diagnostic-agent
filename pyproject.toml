@@ -1,6 +1,6 @@
 [project]
 name = "ai-internet-diagnostic-agent"
-version = "0.1.0"
+version = "0.4.0"
 description = "Cross-platform local agent for AI Internet Diagnostic — collectors land in Phase 4."
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -16,6 +16,8 @@ dependencies = [
     "tenacity>=9.0",
     "platformdirs>=4.0",
     "rich>=13.0",
+    "typer>=0.15,<1.0",
+    "huggingface_hub>=0.27,<1.0",
 ]
 
 [project.optional-dependencies]
@@ -24,6 +26,9 @@ dev = [
     "mypy>=1.13",
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
+    "pytest-mock>=3.12",
+    "hypothesis>=6.120",
+    "freezegun>=1.5",
 ]
 
 # Per-OS extras — Phase 4 will populate; declared here so the package layout is stable.
@@ -36,6 +41,9 @@ macos = [
 linux = [
     # Phase 4 will add: "dbus-next" (or "pydbus"), "systemd-python"
 ]
+
+[project.scripts]
+agent = "agent.cli:app"
 
 [build-system]
 requires = ["hatchling"]
