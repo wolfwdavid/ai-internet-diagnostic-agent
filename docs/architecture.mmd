@@ -1,0 +1,14 @@
+flowchart LR
+  L["📡 Laptop telemetry<br/>(802.1X / DHCP / RADIUS / RF)"] --> S["📋 wifi-diag-schema<br/>TelemetryFrame allowlist"]
+  S --> CLS["🔢 LightGBM 10-class classifier<br/>(calibrated, top-K verdict)"]
+  S --> ANO["📈 PyOD IForest anomaly detector<br/>(95p-of-normal threshold)"]
+  CLS --> V["📊 Verdict + EvidenceItems<br/>(citation-grounded)"]
+  ANO --> V
+  V --> N["💬 Anthropic Haiku 4.5 narrator<br/>(Structured Outputs)"]
+  N --> UI["🖥️ Gradio Live tab<br/>+ Agent CLI"]
+  style CLS fill:#3498db,stroke:#1b4f72,stroke-width:3px,color:#fff
+  style ANO fill:#3498db,stroke:#1b4f72,stroke-width:3px,color:#fff
+  style V fill:#2ecc71,stroke:#196f3d,stroke-width:2px,color:#fff
+
+  %% YOU ARE HERE (Agent repo): highlight the Laptop telemetry node
+  style L fill:#ffd700,stroke:#ff6600,stroke-width:5px,color:#000
