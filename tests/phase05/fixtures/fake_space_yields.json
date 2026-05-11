@@ -1,0 +1,20 @@
+{
+  "first_run_yields_before_drop": [
+    {"state": "handshake_ok", "schema_version": "1.1.0", "space_version": "1.0.0"},
+    {"state": "streaming", "frame_index": 1, "total": 10, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 2, "total": 10, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 3, "total": 10, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 4, "total": 10, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 5, "total": 10, "redaction_passed": true}
+  ],
+  "retry_yields_after_wake": [
+    {"state": "handshake_ok", "schema_version": "1.1.0", "space_version": "1.0.0"},
+    {"state": "streaming", "frame_index": 1, "total": 5, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 2, "total": 5, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 3, "total": 5, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 4, "total": 5, "redaction_passed": true},
+    {"state": "streaming", "frame_index": 5, "total": 5, "redaction_passed": true},
+    {"state": "computing"},
+    {"state": "complete", "verdict": {"headline": "demo", "top_class": "auth_8021x_eap_fail", "confidence": 0.9, "evidence": [], "suggested_fix": "demo"}}
+  ]
+}
