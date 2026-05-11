@@ -1,3 +1,46 @@
+<!-- ABOVE_THE_FOLD_START — DO NOT EDIT WITHOUT UPDATING ALL 3 REPOS (Plan 05-06 byte-equal gate) -->
+# AI Internet Diagnostic
+
+> Tells you the *specific* reason your Wi-Fi just dropped — evidence-grounded, confidence-scored attribution like _"your school's 802.1X session expired at 09:14:23 — here are the three telemetry signals that prove it."_
+
+## Results
+
+**Macro F1:** 0.974 (synthetic) · pending (real, Reality Anchor dogfood) · ECE 0.28
+
+![Confusion matrix](https://huggingface.co/WolfDavid/ai-internet-diagnostic-model/resolve/main/artifacts/plots/confusion_matrix.png)
+
+## Architecture
+
+![Architecture](https://huggingface.co/WolfDavid/ai-internet-diagnostic-model/resolve/main/docs/architecture.png)
+
+<details>
+<summary>Mermaid source (renders on GitHub)</summary>
+
+```mermaid
+flowchart LR
+  L["📡 Laptop telemetry"] --> S["📋 wifi-diag-schema"]
+  S --> CLS["🔢 LightGBM 10-class classifier"]
+  S --> ANO["📈 PyOD IForest anomaly detector"]
+  CLS --> V["📊 Verdict + EvidenceItems"]
+  ANO --> V
+  V --> N["💬 Anthropic Haiku 4.5 narrator"]
+  N --> UI["🖥️ Gradio Live tab + Agent CLI"]
+  style CLS fill:#3498db,stroke:#1b4f72,stroke-width:3px,color:#fff
+  style ANO fill:#3498db,stroke:#1b4f72,stroke-width:3px,color:#fff
+  style V fill:#2ecc71,stroke:#196f3d,stroke-width:2px,color:#fff
+```
+
+</details>
+
+_Trained models (blue) sit at the visual gravity center of the pipeline. The LLM narrator (green) is downstream — it explains what the classifier and anomaly detector found, with citations to specific telemetry fields. This is **not** a GPT wrapper._
+
+## Try it live
+
+🔗 **[Live demo on Hugging Face Spaces](https://huggingface.co/spaces/WolfDavid/wifi-diag)**
+
+---
+
+<!-- ABOVE_THE_FOLD_END -->
 # AI Internet Diagnostic — Agent
 
 Cross-platform local agent (Windows / macOS / Linux) that collects enterprise-Wi-Fi telemetry and either runs full local diagnosis (no network egress — privacy-by-default) or streams `TelemetryFrame`s to the [Hugging Face Space](https://huggingface.co/spaces/WolfDavid/ai-internet-diagnostic) for live diagnosis.
