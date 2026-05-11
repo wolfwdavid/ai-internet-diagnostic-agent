@@ -8,10 +8,13 @@ show-telemetry = redacted preview of recent buffer (transparency-by-default).
 from __future__ import annotations
 
 import json
+import os
+import time
 
 import typer
 from rich.console import Console
 from rich.table import Table
+from tenacity import RetryError
 
 from agent import buffer, process
 from agent.consent import ConsentLevel, prompt_consent
@@ -70,15 +73,92 @@ def diagnose(
         "--consent",
         help="Skip interactive prompt: local | redacted | ssid (D-CONSENT-04)",
     ),
+    cloud: bool = typer.Option(
+        False,
+        "--cloud",
+        help="Stream diagnosis to the live Space over SSE (AGENT-08)",
+    ),
+    pair_code: str | None = typer.Option(
+        None,
+        "--pair-code",
+        help="Pair code for non-owner cloud sessions (D-LIVE-03)",
+    ),
+    space_id: str = typer.Option(
+        "WolfDavid/wifi-diag",
+        "--space-id",
+        help="HF Space id; override only for testing",
+    ),
 ) -> None:
-    """Diagnose the most-recent flagged drop (or live snapshot if none)."""
+    """Diagnose the most-recent flagged drop (or live snapshot if none).
+
+    Without --cloud: local-only inference (Phase 4 path).
+    With --cloud: SSE upload to the Space; on tenacity exhaustion falls back
+    to the local-only path (D-LIVE-04) with the amber Local-mode banner.
+    """
     if consent is not None and consent not in ("local", "redacted", "ssid"):
         raise typer.BadParameter(
             f"--consent must be one of local|redacted|ssid (got {consent!r})"
         )
     chosen: ConsentLevel = prompt_consent(non_interactive=consent)  # type: ignore[arg-type]
+
+    if cloud:
+        _run_cloud_diagnosis(
+            consent=chosen, space_id=space_id, pair_code=pair_code
+        )
+        return
+
     result = _run_diagnosis(chosen)
     console.print(result)
+
+
+def _run_cloud_diagnosis(
+    consent: ConsentLevel, space_id: str, pair_code: str | None
+) -> None:
+    """`agent diagnose --cloud` (AGENT-08): SSE-stream to Space, fall back to
+    local on tenacity exhaustion (D-LIVE-04)."""
+    from agent.transport.client import stream_diagnose
+    from agent.transport.errors import (
+        PermanentTransportError,
+        TransientTransportError,
+    )
+    from agent.transport.fallback import (
+        LOCAL_FALLBACK_BANNER,
+        fallback_to_local,
+    )
+    from agent.transport.replay import reset_cursor
+
+    frames = buffer.snapshot_recent(120)
+    if not frames:
+        console.print(
+            "no telemetry in buffer — has the daemon been running? "
+            "Run `agent start` first."
+        )
+        return
+
+    owner_key = os.environ.get("WIFI_DIAG_OWNER_KEY")
+    try:
+        for chunk in stream_diagnose(space_id, frames, owner_key, pair_code):
+            console.print(
+                f"[{time.strftime('%H:%M:%S')}] "
+                f"{chunk.get('state', '?')}: {chunk}"
+            )
+            if chunk.get("state") == "complete":
+                verdict = chunk.get("verdict") or {}
+                console.print_json(data=verdict)
+                return
+    except PermanentTransportError as e:
+        console.print(f"[red]Permanent transport error:[/red] {e}")
+        raise typer.Exit(code=2) from e
+    except (RetryError, TransientTransportError):
+        # tenacity exhausted (reraise=True surfaces the underlying
+        # TransientTransportError; RetryError covers reraise=False configs).
+        # D-LIVE-04 local fallback path.
+        console.print(f"[yellow]{LOCAL_FALLBACK_BANNER}[/yellow]")
+        verdict = fallback_to_local(frames)
+        console.print_json(data=verdict.model_dump(mode="json"))
+        reset_cursor()  # next session starts fresh
+    # Reference consent for documentation/debugging without changing UX.
+    _ = consent
 
 
 def _run_diagnosis(consent: ConsentLevel) -> str:

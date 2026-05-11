@@ -46,7 +46,7 @@ There is **no field** in `TelemetryFrame` for any of the following — and
 - `username` / `eap_identity` / `Identity` — never extracted from event logs
 - `password` — never extracted from event logs
 - `cert_subject_dn` / `UserCert` — TLS certificate contents
-- `ssid` is collected only with explicit per-event consent (Phase 5; not yet wired)
+- `ssid` is collected only with explicit per-event consent (cloud-with-SSID option)
 - `bssid` raw form is opt-in via `--with-bssid-raw` flag; default is hashed
 
 ## Where data lives
@@ -77,13 +77,19 @@ Per-event consent (D-CONSENT-01..04). Every `agent diagnose` invocation is one
 event. NO session memory; NO config-file-based "remember my choice."
 
 Default: **Local-only** — verdict computed on this laptop, nothing leaves.
-Phase 5 will wire two cloud options:
+Two cloud options are wired and selectable per-event:
 - Cloud (redacted) — anonymized fingerprint, no SSID
 - Cloud (with SSID) — adds your network name
 
-Cloud options are visibly disabled in Phase 4 with `[Phase 5]` annotations.
+Cloud diagnosis uploads the redacted telemetry window to the project's
+Hugging Face Space over an outbound SSE channel (`gradio_client.Client.submit()`)
+and streams the verdict back. If the Space is unreachable after retries, the
+agent falls back to local-only inference and prints an amber "Local mode"
+banner.
 
-Non-interactive: `agent diagnose --consent local` skips the prompt.
+Non-interactive: `agent diagnose --consent local|redacted|ssid` skips the
+prompt; pair `--cloud` with `--consent redacted` (or `ssid`) to upload, or
+pair `--consent local` for the offline path.
 
 ## Effective configuration
 
