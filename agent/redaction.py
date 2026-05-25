@@ -182,6 +182,53 @@ def redact_to_schema(payload: dict) -> TelemetryFrame:
     )
 
     # ------------------------------------------------------------------
+    # Step 4b: map baseline ping_* flat keys -> PingContinuity sub-object.
+    # baseline.collect_baseline() emits ping_avg_rtt_ms / ping_jitter_ms /
+    # ping_packet_loss as TOP-LEVEL keys. They are NOT in SCHEMA_ALLOWLIST
+    # (the schema field is ping_continuity: PingContinuity, not flat ping_*),
+    # so the projection loop at Step 2 drops them. Without this block the
+    # Step 5 default unconditionally null-fills ping_continuity and the
+    # classifier never sees real RTT / loss / jitter signal.
+    #
+    # Guard: only fire when no nested ping_continuity is already on `clean`
+    # (per-OS collectors in plans 04-03 / 04-04 may build a richer sub-object
+    # directly — do NOT clobber it). Only fire when at least one ping_* key
+    # is present on the payload (sparse hypothesis payloads keep today's
+    # null default via Step 5).
+    # ------------------------------------------------------------------
+    _PING_KEYS = ("ping_avg_rtt_ms", "ping_jitter_ms", "ping_packet_loss")
+    if (
+        "ping_continuity" not in clean
+        and any(k in payload for k in _PING_KEYS)
+    ):
+        # Clamp packet_loss_pct to schema range [0.0, 100.0] (Field ge / le).
+        _loss_raw = float(payload.get("ping_packet_loss", 0.0) or 0.0)
+        _loss = max(0.0, min(100.0, _loss_raw))
+        if _loss >= 100.0:
+            # 100% loss == network down. baseline returns 0.0 RTT / jitter
+            # in this branch but 0.0 is misleading downstream; None is the
+            # semantically correct "no probes returned" signal per the
+            # PingContinuity field docs ("None if no probes returned").
+            _avg: float | None = None
+            _jitter: float | None = None
+        else:
+            # Defensive clamp to >= 0 (PingContinuity fields ge=0).
+            _avg = max(0.0, float(payload.get("ping_avg_rtt_ms", 0.0) or 0.0))
+            _jitter = max(0.0, float(
+                payload.get("ping_jitter_ms", 0.0) or 0.0,
+            ))
+        clean["ping_continuity"] = PingContinuity(
+            # Single-probe RTT matches PROBE_TIMEOUT_S=1.0 in baseline.py;
+            # this is NOT a multi-probe windowed aggregate, so window_ms is
+            # the probe timeout (1000ms), not the rolling-buffer window
+            # (120000ms) or the hard-coded Step 5 default (2000ms).
+            window_ms=1000,
+            avg_rtt_ms=_avg,
+            packet_loss_pct=_loss,
+            jitter_ms=_jitter,
+        )
+
+    # ------------------------------------------------------------------
     # Step 5: defaults for required fields the collector may omit.
     # Required-but-not-defaulted fields on TelemetryFrame are: timestamp,
     # os, network_mode, rssi_dbm, bssid, bssid_mode, channel,
