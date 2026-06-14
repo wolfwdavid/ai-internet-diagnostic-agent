@@ -80,7 +80,7 @@ requires-dist = [
     { name = "tenacity", specifier = ">=9.0" },
     { name = "typer", specifier = ">=0.15,<1.0" },
     { name = "wifi-diag-narrator", specifier = ">=0.1.1,<0.2.0" },
-    { name = "wifi-diag-schema", specifier = ">=1.1.0,<2.0.0" },
+    { name = "wifi-diag-schema", specifier = ">=1.2,<2.0" },
 ]
 provides-extras = ["dev", "windows", "macos", "linux"]
 
@@ -1592,13 +1592,13 @@ wheels = [
 
 [[package]]
 name = "wifi-diag-schema"
-version = "1.1.0"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/52/84/bdbd6185620708f30067e5807809ea5e3f1d809d8d7a80d76149cfc8e05c/wifi_diag_schema-1.1.0.tar.gz", hash = "sha256:c6e3d84d98d4a0f1c6c1c351fb5d28eeb19ce64bef763045134e6ac0e03f36e0", size = 35441, upload-time = "2026-05-11T22:40:57.69Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/01/f939abbb299c9234b05be9deceb4c54fa34f7d9204a23993cc3c49eb03a5/wifi_diag_schema-1.2.0.tar.gz", hash = "sha256:f80963394c9d4b3b40ac8b09e0b92c2e85035d0ae169e64c68ec50d558c48ee0", size = 38404, upload-time = "2026-06-14T19:37:23.518Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/49/f16a747a9ce996adf05ab6f7b2f280720f833d705ecdfa48d3ec560e0655/wifi_diag_schema-1.1.0-py3-none-any.whl", hash = "sha256:6f131a95bc7a65ef65ad634aa75d0c8485404069ad024457117e71cdaf1bdad7", size = 15248, upload-time = "2026-05-11T22:40:56.428Z" },
+    { url = "https://files.pythonhosted.org/packages/18/ce/34f6c88fa173cbd40815856d9fab8b42eae6a432b08c950ceb0bafe214f6/wifi_diag_schema-1.2.0-py3-none-any.whl", hash = "sha256:1c86be8d5346a223b5a54715b16178da87139b813cde5a7843b3d4066f5742d6", size = 15516, upload-time = "2026-06-14T19:37:22.339Z" },
 ]
