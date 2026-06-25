@@ -20,6 +20,7 @@ Public API:
     DENY_PATTERNS: list[re.Pattern]
     SCHEMA_ALLOWLIST: frozenset[str]
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -58,18 +59,32 @@ DENY_PATTERNS: list[re.Pattern] = [
 # Reference: wifi_diag_schema.enums
 # ---------------------------------------------------------------------------
 _ALLOWED_AUTH_EVENTS = {
-    "none", "8021x_success", "8021x_fail",
-    "radius_timeout", "eap_fail", "eapol_m3_timeout",
+    "none",
+    "8021x_success",
+    "8021x_fail",
+    "radius_timeout",
+    "eap_fail",
+    "eapol_m3_timeout",
 }
 _ALLOWED_DHCP_EVENTS = {
-    "none", "discover_no_offer", "nak_on_renew", "request_loop",
+    "none",
+    "discover_no_offer",
+    "nak_on_renew",
+    "request_loop",
 }
 _ALLOWED_DRIVER_STATES = {
-    "normal", "post_wake_init", "power_save_active",
-    "u_apsd_active", "error", "unknown",
+    "normal",
+    "post_wake_init",
+    "power_save_active",
+    "u_apsd_active",
+    "error",
+    "unknown",
 }
 _ALLOWED_MAC_RAND_STATES = {
-    "off", "per_network", "per_session", "rejected",
+    "off",
+    "per_network",
+    "per_session",
+    "rejected",
 }
 _ALLOWED_OS = {"windows", "macos", "linux"}
 _ALLOWED_NETWORK_MODES = {"enterprise", "captive", "home", "unknown"}
@@ -165,20 +180,24 @@ def redact_to_schema(payload: dict) -> TelemetryFrame:
     # Free-text -> safe default. NEVER let an OS-event-log string leak in.
     # ------------------------------------------------------------------
     clean["auth_event_class"] = _coerce(
-        payload.get("auth_event_class"), _ALLOWED_AUTH_EVENTS, "none",
+        payload.get("auth_event_class"),
+        _ALLOWED_AUTH_EVENTS,
+        "none",
     )
     clean["dhcp_event_class"] = _coerce(
         payload.get("dhcp_event_class", clean.get("dhcp_event_class")),
-        _ALLOWED_DHCP_EVENTS, "none",
+        _ALLOWED_DHCP_EVENTS,
+        "none",
     )
     clean["driver_state"] = _coerce(
         payload.get("driver_state", clean.get("driver_state")),
-        _ALLOWED_DRIVER_STATES, "unknown",
+        _ALLOWED_DRIVER_STATES,
+        "unknown",
     )
     clean["mac_randomization_state"] = _coerce(
-        payload.get("mac_randomization_state",
-                    clean.get("mac_randomization_state")),
-        _ALLOWED_MAC_RAND_STATES, "off",
+        payload.get("mac_randomization_state", clean.get("mac_randomization_state")),
+        _ALLOWED_MAC_RAND_STATES,
+        "off",
     )
 
     # ------------------------------------------------------------------
@@ -197,10 +216,7 @@ def redact_to_schema(payload: dict) -> TelemetryFrame:
     # null default via Step 5).
     # ------------------------------------------------------------------
     _PING_KEYS = ("ping_avg_rtt_ms", "ping_jitter_ms", "ping_packet_loss")
-    if (
-        "ping_continuity" not in clean
-        and any(k in payload for k in _PING_KEYS)
-    ):
+    if "ping_continuity" not in clean and any(k in payload for k in _PING_KEYS):
         # Clamp packet_loss_pct to schema range [0.0, 100.0] (Field ge / le).
         _loss_raw = float(payload.get("ping_packet_loss", 0.0) or 0.0)
         _loss = max(0.0, min(100.0, _loss_raw))
@@ -214,9 +230,12 @@ def redact_to_schema(payload: dict) -> TelemetryFrame:
         else:
             # Defensive clamp to >= 0 (PingContinuity fields ge=0).
             _avg = max(0.0, float(payload.get("ping_avg_rtt_ms", 0.0) or 0.0))
-            _jitter = max(0.0, float(
-                payload.get("ping_jitter_ms", 0.0) or 0.0,
-            ))
+            _jitter = max(
+                0.0,
+                float(
+                    payload.get("ping_jitter_ms", 0.0) or 0.0,
+                ),
+            )
         clean["ping_continuity"] = PingContinuity(
             # Single-probe RTT matches PROBE_TIMEOUT_S=1.0 in baseline.py;
             # this is NOT a multi-probe windowed aggregate, so window_ms is
@@ -240,18 +259,20 @@ def redact_to_schema(payload: dict) -> TelemetryFrame:
     if "timestamp" not in clean:
         clean["timestamp"] = float(payload.get("ts", 0.0))
     if "os" not in clean:
-        clean["os"] = _coerce(payload.get("os", "windows"),
-                              _ALLOWED_OS, "windows")
+        clean["os"] = _coerce(payload.get("os", "windows"), _ALLOWED_OS, "windows")
     else:
         clean["os"] = _coerce(clean["os"], _ALLOWED_OS, "windows")
     if "network_mode" not in clean:
         clean["network_mode"] = _coerce(
             payload.get("network_mode", "unknown"),
-            _ALLOWED_NETWORK_MODES, "unknown",
+            _ALLOWED_NETWORK_MODES,
+            "unknown",
         )
     else:
         clean["network_mode"] = _coerce(
-            clean["network_mode"], _ALLOWED_NETWORK_MODES, "unknown",
+            clean["network_mode"],
+            _ALLOWED_NETWORK_MODES,
+            "unknown",
         )
     if "rssi_dbm" not in clean:
         clean["rssi_dbm"] = int(payload.get("rssi", -90))
@@ -275,11 +296,14 @@ def redact_to_schema(payload: dict) -> TelemetryFrame:
     if "window_ms" not in clean:
         clean["window_ms"] = _coerce(
             payload.get("window_ms_default", 120000),
-            _ALLOWED_WINDOW_MS, 120000,
+            _ALLOWED_WINDOW_MS,
+            120000,
         )
     else:
         clean["window_ms"] = _coerce(
-            clean["window_ms"], _ALLOWED_WINDOW_MS, 120000,
+            clean["window_ms"],
+            _ALLOWED_WINDOW_MS,
+            120000,
         )
 
     return TelemetryFrame.model_validate(clean)

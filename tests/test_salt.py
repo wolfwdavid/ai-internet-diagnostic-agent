@@ -1,4 +1,5 @@
 """Per-install salt persistence + randomness (PRIV-01 / D-PRIV-04)."""
+
 from __future__ import annotations
 
 from pathlib import Path

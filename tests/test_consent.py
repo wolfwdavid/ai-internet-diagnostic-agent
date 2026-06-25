@@ -6,6 +6,7 @@ Phase 5 (D-CONSENT-02 cloud-now-live):
   - Choosing options 2 / 3 interactively returns 'redacted' / 'ssid'.
   - Default-on-Enter is still 'local'.
 """
+
 from __future__ import annotations
 
 import io
@@ -37,9 +38,7 @@ def test_prompt_has_no_phase5_annotations(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", io.StringIO("\n"))
     prompt_consent(non_interactive=None)
     out = capsys.readouterr().out
-    assert "[Phase 5]" not in out, (
-        f"Phase 5 marker still present in prompt:\n{out}"
-    )
+    assert "[Phase 5]" not in out, f"Phase 5 marker still present in prompt:\n{out}"
     assert "Local" in out or "Locally" in out
 
 

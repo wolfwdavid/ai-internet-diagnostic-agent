@@ -36,6 +36,7 @@ D-Bus introspection object), plus the baseline payload. No D-Bus object
 references, no introspection XML, no bus names or object paths survive
 past the redaction boundary into the serialized frame.
 """
+
 from __future__ import annotations
 
 import asyncio

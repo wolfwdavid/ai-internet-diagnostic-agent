@@ -10,6 +10,7 @@ Per-tick contract for downstream collectors (04-02/03/04):
   3. Pass it through `agent.redaction.redact_to_schema` (plan 04-05).
   4. Persist via `agent.buffer.append_frame`.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -42,6 +43,7 @@ def _get_collector():
     global _collector_instance
     if _collector_instance is None:
         from agent.collectors import make_collector
+
         _collector_instance = make_collector()
     return _collector_instance
 

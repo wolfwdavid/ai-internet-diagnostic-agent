@@ -1,4 +1,5 @@
 """Wave 0 RED-state tests for daemon process lifecycle (D-AGENT-01)."""
+
 from __future__ import annotations
 
 import time

@@ -10,6 +10,7 @@ Outputs the catalog into ``agent/transport/EXCEPTION_NOTES.md``.
 GATES Task 2: the retry-predicate in ``agent/transport/client.py`` MUST treat
 every recorded type as TransientTransportError.
 """
+
 from __future__ import annotations
 
 import os
@@ -19,9 +20,7 @@ from pathlib import Path
 import pytest
 from gradio_client import Client
 
-EXCEPTION_NOTES = (
-    Path(__file__).resolve().parents[2] / "agent" / "transport" / "EXCEPTION_NOTES.md"
-)
+EXCEPTION_NOTES = Path(__file__).resolve().parents[2] / "agent" / "transport" / "EXCEPTION_NOTES.md"
 
 
 def _observe(fn):
@@ -36,9 +35,7 @@ def _observe(fn):
 def test_probe_unreachable_url_records_exception_type():
     """Connect to a refused-connection URL and append the exception type."""
     obs = _observe(lambda: Client("http://127.0.0.1:1", verbose=False))
-    assert obs is not None, (
-        "expected an exception when connecting to refused-connection URL"
-    )
+    assert obs is not None, "expected an exception when connecting to refused-connection URL"
     mod, name, repr_ = obs
     EXCEPTION_NOTES.parent.mkdir(parents=True, exist_ok=True)
     with EXCEPTION_NOTES.open("a", encoding="utf-8") as f:

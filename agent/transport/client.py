@@ -16,9 +16,10 @@ Design rules (RESEARCH §Pattern 2 + Gotcha 2):
   - Schema-mismatch (state=schema_mismatch yielded by the Space) is a
     PermanentTransportError -- DO NOT retry.
 """
+
 from __future__ import annotations
 
-from typing import Iterator
+from collections.abc import Iterator
 
 import httpx
 from gradio_client import Client
@@ -74,9 +75,7 @@ def _classify_and_raise(e: Exception) -> None:
         raise TransientTransportError(str(e)) from e
     # Default: treat unknown as transient ONCE so tenacity decides whether to
     # retry. After exhaustion the caller sees the wrapped exception.
-    raise TransientTransportError(
-        f"unknown: {type(e).__name__}: {e}"
-    ) from e
+    raise TransientTransportError(f"unknown: {type(e).__name__}: {e}") from e
 
 
 @retry(
@@ -151,12 +150,8 @@ def stream_diagnose(
     frames_json = [f.model_dump_json() for f in to_send]
     handshake_json = build_handshake_json()
 
-    client, job = _connect_and_submit(
-        space_id, handshake_json, frames_json, owner_key, pair_code
-    )
-    session_hash = getattr(client, "session_hash", None) or getattr(
-        job, "session_hash", None
-    )
+    client, job = _connect_and_submit(space_id, handshake_json, frames_json, owner_key, pair_code)
+    session_hash = getattr(client, "session_hash", None) or getattr(job, "session_hash", None)
     # session_hash must be JSON-serializable for the cursor file. Coerce
     # non-string values (e.g. MagicMock under test, missing attributes) to None.
     if not isinstance(session_hash, str):
@@ -172,9 +167,7 @@ def stream_diagnose(
         if state == "streaming":
             idx = int(chunk.get("frame_index", 1)) - 1
             if 0 <= idx < len(to_send):
-                save_last_acked_ts(
-                    to_send[idx].timestamp, session_hash=session_hash
-                )
+                save_last_acked_ts(to_send[idx].timestamp, session_hash=session_hash)
         if state == "complete" and to_send:
             save_last_acked_ts(
                 max(f.timestamp for f in to_send),

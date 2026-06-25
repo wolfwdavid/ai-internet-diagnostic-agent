@@ -1,4 +1,5 @@
 """Wave 0 RED-state tests for the Typer CLI surface (AGENT-03)."""
+
 from __future__ import annotations
 
 from typer.testing import CliRunner

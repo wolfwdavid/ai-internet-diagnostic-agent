@@ -3,6 +3,7 @@
 These fixtures isolate the cursor file under ``platformdirs.user_cache_dir``
 and provide a guaranteed-unreachable URL for the Wave-0 probe.
 """
+
 from __future__ import annotations
 
 import os

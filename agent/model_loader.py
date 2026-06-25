@@ -14,6 +14,7 @@ huggingface_hub moved LocalEntryNotFoundError between
 ``huggingface_hub.utils`` (<0.25) and ``huggingface_hub.errors`` (>=0.25);
 import defensively so the agent works against either version.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

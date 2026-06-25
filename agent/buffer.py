@@ -6,6 +6,7 @@ SQLite WAL at platformdirs.user_cache_dir()/wifi-diag/buffer/buffer.db.
 
 Per RESEARCH §Pattern 4: WAL allows daemon to write while `agent diagnose` reads.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -61,9 +62,7 @@ def snapshot_recent(seconds: int = 120) -> list[TelemetryFrame]:
     cutoff = time.time() - seconds
     con = _open()
     try:
-        cur = con.execute(
-            "SELECT frame_json FROM frames WHERE ts >= ? ORDER BY ts ASC", (cutoff,)
-        )
+        cur = con.execute("SELECT frame_json FROM frames WHERE ts >= ? ORDER BY ts ASC", (cutoff,))
         return [TelemetryFrame.model_validate_json(row[0]) for row in cur.fetchall()]
     finally:
         con.close()

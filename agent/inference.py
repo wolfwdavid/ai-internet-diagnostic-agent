@@ -12,6 +12,7 @@ vendored_from: WolfDavid/ai-internet-diagnostic-model@dc95cf9918e9e1d890b2f73aec
 vendored_at: 2026-05-10
 sync_via: this plan (04-06) when upstream model/inference.py changes
 """
+
 from __future__ import annotations
 
 import joblib
@@ -114,9 +115,7 @@ MASK_TABLE: dict[NetworkMode, frozenset[DisconnectClass]] = {
 }
 
 
-def apply_mask_and_renormalize(
-    probs: np.ndarray, network_mode: NetworkMode
-) -> np.ndarray:
+def apply_mask_and_renormalize(probs: np.ndarray, network_mode: NetworkMode) -> np.ndarray:
     """D-CAL-09: zero masked classes, renormalize remainder to sum to 1.
 
     Vendored verbatim from model/inference.py::apply_mask_and_renormalize.
@@ -200,10 +199,7 @@ def _predict_verdict_impl(classifier_path, frames: list) -> Verdict:
         top_class=top_class,
         confidence=confidence,
         top_k=top_k,
-        headline=(
-            f"Pre-narrator stub: classifier predicts {top_class} "
-            f"({confidence:.0%})"
-        ),
+        headline=(f"Pre-narrator stub: classifier predicts {top_class} ({confidence:.0%})"),
         suggested_fix="Pre-narrator stub: narrate_templated will fill this in.",
         evidence=[],
     )

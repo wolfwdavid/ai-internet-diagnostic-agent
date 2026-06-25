@@ -9,6 +9,7 @@ Each row has a status (✓ / ⚠ / ✗) and a "what unlocking adds" column —
 educational tone, does NOT offer to elevate inline (avoids UAC / antivirus
 flagging per Pitfall 13).
 """
+
 from __future__ import annotations
 
 import platform
@@ -20,9 +21,9 @@ from rich.console import Console
 from rich.table import Table
 
 _STATUS_GLYPHS: dict[str, str] = {
-    "ok":   "[green]✓[/green]",   # ✓
+    "ok": "[green]✓[/green]",  # ✓
     "warn": "[yellow]⚠[/yellow]",  # ⚠
-    "err":  "[red]✗[/red]",        # ✗
+    "err": "[red]✗[/red]",  # ✗
 }
 
 
@@ -31,6 +32,7 @@ def _check_baseline() -> dict[str, Any]:
     try:
         import icmplib  # noqa: F401
         import psutil  # noqa: F401
+
         return {
             "name": "ICMP + psutil baseline",
             "status": "ok",
@@ -48,17 +50,22 @@ def _check_windows() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     try:
         import win32evtlog  # type: ignore[import-not-found]  # noqa: F401
-        rows.append({
-            "name": "WLAN-AutoConfig event log",
-            "status": "ok",
-            "unlocks": "+25% confidence on auth_8021x_eap_fail (D-PRIV-03)",
-        })
+
+        rows.append(
+            {
+                "name": "WLAN-AutoConfig event log",
+                "status": "ok",
+                "unlocks": "+25% confidence on auth_8021x_eap_fail (D-PRIV-03)",
+            }
+        )
     except ImportError:
-        rows.append({
-            "name": "WLAN-AutoConfig event log",
-            "status": "err",
-            "unlocks": "install with `pip install ai-internet-diagnostic-agent[windows]`",
-        })
+        rows.append(
+            {
+                "name": "WLAN-AutoConfig event log",
+                "status": "err",
+                "unlocks": "install with `pip install ai-internet-diagnostic-agent[windows]`",
+            }
+        )
     return rows
 
 
@@ -68,46 +75,56 @@ def _check_macos() -> list[dict[str, Any]]:
     # ad-hoc-signed Python even with Location Services granted.
     try:
         from CoreWLAN import CWInterface  # type: ignore[import-not-found]
+
         iface = CWInterface.sharedInstance()
         has_network = bool(getattr(iface, "serviceActive", lambda: False)())
         bssid = iface.bssid() if iface else None
         if has_network and not bssid:
-            rows.append({
-                "name": "CoreWLAN signing",
-                "status": "warn",
-                "unlocks": (
-                    "ad-hoc-signed Python returns None for BSSID on Sonoma 14.4+; "
-                    "RSSI/channel still work. +10-20% confidence if signed."
-                ),
-            })
+            rows.append(
+                {
+                    "name": "CoreWLAN signing",
+                    "status": "warn",
+                    "unlocks": (
+                        "ad-hoc-signed Python returns None for BSSID on Sonoma 14.4+; "
+                        "RSSI/channel still work. +10-20% confidence if signed."
+                    ),
+                }
+            )
         else:
-            rows.append({
-                "name": "CoreWLAN signing",
-                "status": "ok",
-                "unlocks": "BSSID/RSSI accessible (signing OK)",
-            })
+            rows.append(
+                {
+                    "name": "CoreWLAN signing",
+                    "status": "ok",
+                    "unlocks": "BSSID/RSSI accessible (signing OK)",
+                }
+            )
     except Exception:
-        rows.append({
-            "name": "CoreWLAN signing",
-            "status": "err",
-            "unlocks": "install with `pip install ai-internet-diagnostic-agent[macos]`",
-        })
+        rows.append(
+            {
+                "name": "CoreWLAN signing",
+                "status": "err",
+                "unlocks": "install with `pip install ai-internet-diagnostic-agent[macos]`",
+            }
+        )
     # log show non-sudo path (D-PRIV-04).
     if shutil.which("log"):
-        rows.append({
-            "name": "log show (non-sudo)",
-            "status": "ok",
-            "unlocks": (
-                "association/roam events. WIFI_DIAG_USE_WDUTIL=1 unlocks "
-                "+15% EAP detail."
-            ),
-        })
+        rows.append(
+            {
+                "name": "log show (non-sudo)",
+                "status": "ok",
+                "unlocks": (
+                    "association/roam events. WIFI_DIAG_USE_WDUTIL=1 unlocks +15% EAP detail."
+                ),
+            }
+        )
     else:
-        rows.append({
-            "name": "log show (non-sudo)",
-            "status": "err",
-            "unlocks": "macOS `log` command not found",
-        })
+        rows.append(
+            {
+                "name": "log show (non-sudo)",
+                "status": "err",
+                "unlocks": "macOS `log` command not found",
+            }
+        )
     return rows
 
 
@@ -116,39 +133,46 @@ def _check_linux() -> list[dict[str, Any]]:
     # NetworkManager via dbus-next (Pitfall 12 — distro fragmentation).
     try:
         import dbus_next  # type: ignore[import-not-found]  # noqa: F401
+
         nm_present = shutil.which("nmcli") is not None
         if not nm_present:
             try:
                 rc = subprocess.run(
-                    ["systemctl", "list-units", "--type=service",
-                     "NetworkManager.service"],
-                    capture_output=True, timeout=5,
+                    ["systemctl", "list-units", "--type=service", "NetworkManager.service"],
+                    capture_output=True,
+                    timeout=5,
                 ).returncode
                 nm_present = rc == 0
             except (FileNotFoundError, subprocess.TimeoutExpired):
                 nm_present = False
         if nm_present:
-            rows.append({
-                "name": "NetworkManager D-Bus",
-                "status": "ok",
-                "unlocks": "+30-40% confidence on Linux enterprise networks",
-            })
+            rows.append(
+                {
+                    "name": "NetworkManager D-Bus",
+                    "status": "ok",
+                    "unlocks": "+30-40% confidence on Linux enterprise networks",
+                }
+            )
         else:
-            rows.append({
-                "name": "NetworkManager D-Bus",
-                "status": "warn",
-                "unlocks": (
-                    "v1 supports NM-based stacks (Ubuntu 22.04+ / Fedora / "
-                    "Arch+NM). iwd / systemd-networkd standalone deferred to "
-                    "v1.x. Falling back to baseline."
-                ),
-            })
+            rows.append(
+                {
+                    "name": "NetworkManager D-Bus",
+                    "status": "warn",
+                    "unlocks": (
+                        "v1 supports NM-based stacks (Ubuntu 22.04+ / Fedora / "
+                        "Arch+NM). iwd / systemd-networkd standalone deferred to "
+                        "v1.x. Falling back to baseline."
+                    ),
+                }
+            )
     except ImportError:
-        rows.append({
-            "name": "NetworkManager D-Bus",
-            "status": "err",
-            "unlocks": "install with `pip install ai-internet-diagnostic-agent[linux]`",
-        })
+        rows.append(
+            {
+                "name": "NetworkManager D-Bus",
+                "status": "err",
+                "unlocks": "install with `pip install ai-internet-diagnostic-agent[linux]`",
+            }
+        )
     return rows
 
 

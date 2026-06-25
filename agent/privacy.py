@@ -6,6 +6,7 @@ days, model revision pin. Closes with the schema-allowlist field
 enumeration so the user can see (verbatim from
 ``TelemetryFrame.model_fields``) what is collected.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

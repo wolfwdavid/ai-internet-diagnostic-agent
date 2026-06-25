@@ -4,6 +4,7 @@ Wraps ``wifi_diag_schema.handshake.make_handshake()`` to JSON for the first arg
 of the Space's ``live_diagnose`` endpoint. Centralized so future capability
 flags (per D-05 minor-add semantics) have one place to land.
 """
+
 from __future__ import annotations
 
 from wifi_diag_schema.handshake import HandshakeFrame, make_handshake

@@ -3,12 +3,11 @@
 Cursor file at ``platformdirs.user_cache_dir/wifi-diag/last_acked.json``
 with atomic-write semantics and corruption recovery.
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
-
-import pytest
 
 from agent.transport.replay import (
     _cursor_path,

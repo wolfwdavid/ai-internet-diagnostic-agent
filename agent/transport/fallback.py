@@ -11,6 +11,7 @@ Reuses Phase 4's vendored predict_verdict pipeline (``agent.inference``) so
 the local fallback verdict is byte-for-byte identical to what ``agent diagnose``
 (without --cloud) would have produced.
 """
+
 from __future__ import annotations
 
 from wifi_diag_schema import TelemetryFrame
@@ -18,9 +19,7 @@ from wifi_diag_schema.verdict import Verdict
 
 from agent.inference import run_local_inference
 
-LOCAL_FALLBACK_BANNER = (
-    "[Local mode] verdict computed on owner's laptop (Space was sleeping)."
-)
+LOCAL_FALLBACK_BANNER = "[Local mode] verdict computed on owner's laptop (Space was sleeping)."
 
 
 def fallback_to_local(frames: list[TelemetryFrame]) -> Verdict:

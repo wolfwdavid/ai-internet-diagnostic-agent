@@ -8,6 +8,7 @@ This module produces a payload **dict** (NOT a TelemetryFrame). Per-OS
 collectors layer additional fields on top, then hand the merged dict to
 ``agent.redaction.redact_to_schema`` — the single privacy boundary.
 """
+
 from __future__ import annotations
 
 import platform
@@ -85,8 +86,8 @@ def collect_baseline() -> dict:
     return {
         "ts": time.time(),
         "os": _detect_os(),
-        "network_mode": "enterprise",   # default; per-OS collectors may override
-        "rssi_dbm": -65,                # placeholder; per-OS collectors override
+        "network_mode": "enterprise",  # default; per-OS collectors may override
+        "rssi_dbm": -65,  # placeholder; per-OS collectors override
         **_ping_once(),
         **_wifi_iface_stats(),
     }

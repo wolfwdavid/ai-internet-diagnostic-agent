@@ -8,6 +8,7 @@ semantics unchanged (no session memory, no config-file remember-my-choice).
 The CLI wires the chosen level into ``agent diagnose --cloud`` for the cloud
 transport (D-LIVE-02/03); local stays the local-only path (AGENT-05).
 """
+
 from __future__ import annotations
 
 from typing import Literal
@@ -50,7 +51,5 @@ def prompt_consent(non_interactive: ConsentLevel | None = None) -> ConsentLevel:
 
     console = Console()
     console.print(_PROMPT_BODY)
-    choice = Prompt.ask(
-        "Choice", choices=["1", "2", "3"], default="1", show_default=False
-    )
+    choice = Prompt.ask("Choice", choices=["1", "2", "3"], default="1", show_default=False)
     return _CHOICE_TO_LEVEL[choice]

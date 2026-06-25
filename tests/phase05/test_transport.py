@@ -10,9 +10,9 @@ Covers:
   - Acked-frame skipping on reconnect.
   - Job iteration is NOT retry-wrapped (Gotcha 2).
 """
+
 from __future__ import annotations
 
-import time
 from unittest.mock import MagicMock
 
 import httpx
@@ -88,9 +88,7 @@ def test_tenacity_wraps_submit(mocker, tmp_cache_dir):
 
 def test_retry_classifies_correctly(mocker, tmp_cache_dir):
     """httpx.ReadTimeout exhausts tenacity -> TransientTransportError."""
-    mocker.patch.object(
-        client_mod, "Client", side_effect=httpx.ReadTimeout("slow")
-    )
+    mocker.patch.object(client_mod, "Client", side_effect=httpx.ReadTimeout("slow"))
     with pytest.raises(TransientTransportError):
         _connect_and_submit("fake/space", "{}", [], None, None)
 
@@ -132,7 +130,6 @@ def test_stream_diagnose_advances_cursor(mocker, tmp_cache_dir):
         {"state": "streaming", "frame_index": 2, "total": 2},
         {"state": "complete", "verdict": {}},
     ]
-    fake_job = iter(chunks)
     # job.__iter__ is needed; iter(chunks) returns a list_iterator that already
     # implements __iter__. Wrap in MagicMock to expose attribute-based mocks.
     fake_job_mock = MagicMock(name="job")
@@ -152,9 +149,7 @@ def test_stream_diagnose_skips_acked_frames(mocker, tmp_cache_dir):
     save_last_acked_ts(15.0, "prev")
     fake_client = MagicMock(name="client")
     fake_job_mock = MagicMock(name="job")
-    fake_job_mock.__iter__.return_value = iter(
-        [{"state": "complete", "verdict": {}}]
-    )
+    fake_job_mock.__iter__.return_value = iter([{"state": "complete", "verdict": {}}])
     fake_client.submit.return_value = fake_job_mock
     mocker.patch.object(client_mod, "Client", return_value=fake_client)
 
