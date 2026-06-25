@@ -1,4 +1,5 @@
 """Phase 1 smoke: package imports + schema dependency resolves."""
+
 from __future__ import annotations
 
 
@@ -17,9 +18,9 @@ def test_schema_dep_resolves():
     """
     from wifi_diag_schema import SCHEMA_VERSION, TelemetryFrame
 
-    # Schema bumped to v1.1.0 (Phase 3 D-CROSS-01) — pyproject pins
-    # wifi-diag-schema>=1.1.0,<2.0.0; assertion mirrors that resolved version.
-    assert SCHEMA_VERSION == "1.1.0"
+    # Schema bumped to v1.2.0 (Phase 8 schema-bump) — pyproject pins
+    # wifi-diag-schema>=1.2,<2.0; assertion mirrors that resolved version.
+    assert SCHEMA_VERSION == "1.2.0"
     assert TelemetryFrame.model_config["extra"] == "forbid"
 
 
