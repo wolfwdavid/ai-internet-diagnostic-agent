@@ -74,7 +74,8 @@ def write_diagnosis(
             "VALUES (?, ?, ?, ?, ?)",
             (ts, verdict_json, telemetry_json, SCHEMA_VERSION, consent_level),
         )
-        new_id = int(cur.lastrowid)
+        assert cur.lastrowid is not None  # INSERT always sets lastrowid
+        new_id = cur.lastrowid
         # Auto-prune (D-HISTORY-02).
         cutoff = time.time() - (DEFAULT_RETENTION_DAYS * 86400)
         con.execute("DELETE FROM diagnoses WHERE ts < ?", (cutoff,))

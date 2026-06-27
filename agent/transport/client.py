@@ -20,6 +20,7 @@ Design rules (RESEARCH §Pattern 2 + Gotcha 2):
 from __future__ import annotations
 
 from collections.abc import Iterator
+from typing import NoReturn
 
 import httpx
 from gradio_client import Client
@@ -57,7 +58,7 @@ _TRANSIENT_HTTPX: tuple[type[Exception], ...] = (
 )
 
 
-def _classify_and_raise(e: Exception) -> None:
+def _classify_and_raise(e: Exception) -> NoReturn:
     """Translate raw gradio_client / httpx exceptions into TransientTransportError
     or PermanentTransportError per RESEARCH §Pattern 2.
 

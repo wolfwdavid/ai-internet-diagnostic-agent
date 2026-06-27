@@ -51,8 +51,8 @@ try:
     from dbus_next import BusType  # type: ignore[import-not-found]
     from dbus_next.aio import MessageBus  # type: ignore[import-not-found]
 except ImportError:  # pragma: no cover - exercised only on un-installed envs
-    MessageBus = None  # type: ignore[assignment]
-    BusType = None  # type: ignore[assignment]
+    MessageBus = None  # type: ignore[assignment,misc]
+    BusType = None  # type: ignore[assignment,misc]
 
 from wifi_diag_schema import TelemetryFrame
 
@@ -140,7 +140,7 @@ async def _async_sample_nm() -> dict:
             iface = proxy.get_interface(NM_BUS_NAME)
             # dbus-next auto-generates ``get_<property>()`` accessors from
             # introspection XML; ``State`` is the daemon's overall state code.
-            state = await iface.get_state()
+            state = await iface.get_state()  # type: ignore[attr-defined]
             return {"nm_present": True, "state": int(state)}
         except Exception as exc:  # noqa: BLE001
             log.debug("NetworkManager state read failed: %s", exc)

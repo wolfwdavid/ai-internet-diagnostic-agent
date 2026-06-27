@@ -75,7 +75,8 @@ def flag_drop(ts: float, reason: str) -> int:
             "INSERT INTO flagged_drops (ts, reason, diagnosed) VALUES (?, ?, 0)",
             (ts, reason),
         )
-        return int(cur.lastrowid)
+        assert cur.lastrowid is not None  # INSERT always sets lastrowid
+        return cur.lastrowid
     finally:
         con.close()
 
