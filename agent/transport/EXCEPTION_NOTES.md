@@ -31,8 +31,3 @@ filter._
 - module: `httpx`
 - type: `ConnectError`
 - repr: `ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it')`
-
-## Unreachable URL probe (2026-06-26T22:54:02)
-- module: `httpx`
-- type: `ConnectError`
-- repr: `ConnectError('[WinError 10061] No connection could be made because the target machine actively refused it')`
