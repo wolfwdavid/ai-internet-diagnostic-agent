@@ -5,30 +5,46 @@ The TelemetryFrame schema (`extra="forbid"`) IS the privacy contract — this
 test exercises adversarial PII payloads to prove no string survives the
 redaction boundary into the serialized frame.
 """
+
 from __future__ import annotations
 
 import re
 
-from hypothesis import HealthCheck, given, settings, strategies as st
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 from wifi_diag_schema import TelemetryFrame
 
 from agent.redaction import DENY_PATTERNS, bssid_hash, redact_to_schema
 
-PII_PAYLOADS = st.fixed_dictionaries({
-    "evt_xml": st.sampled_from([
-        '<EventData><Data Name="Identity">student@school.edu</Data></EventData>',
-        '<EventData><Data Name="Reason">RADIUS_TIMEOUT</Data><Data Name="UserCert">CN=John Doe,OU=Students</Data></EventData>',
-        '<EventData><Data Name="EapMethod">25</Data><Data Name="Password">hunter2</Data></EventData>',
-        '<EventData><Data Name="Identity">teacher@school.edu</Data><Data Name="MAC">aa:bb:cc:dd:ee:ff</Data></EventData>',
-        '<EventData><Data Name="CertSubject">CN=root.example.com,O=ACME</Data></EventData>',
-    ]),
-    "ts": st.floats(min_value=1700000000.0, max_value=2000000000.0,
-                    allow_nan=False, allow_infinity=False),
-    "rssi": st.integers(min_value=-95, max_value=-30),
-    "os": st.sampled_from(["windows", "macos", "linux"]),
-    "network_mode": st.sampled_from(["enterprise", "captive", "home", "unknown"]),
-    "raw_bssid": st.sampled_from(["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]),
-})
+PII_PAYLOADS = st.fixed_dictionaries(
+    {
+        "evt_xml": st.sampled_from(
+            [
+                '<EventData><Data Name="Identity">student@school.edu</Data></EventData>',
+                (
+                    '<EventData><Data Name="Reason">RADIUS_TIMEOUT</Data>'
+                    '<Data Name="UserCert">CN=John Doe,OU=Students</Data></EventData>'
+                ),
+                (
+                    '<EventData><Data Name="EapMethod">25</Data>'
+                    '<Data Name="Password">hunter2</Data></EventData>'
+                ),
+                (
+                    '<EventData><Data Name="Identity">teacher@school.edu</Data>'
+                    '<Data Name="MAC">aa:bb:cc:dd:ee:ff</Data></EventData>'
+                ),
+                '<EventData><Data Name="CertSubject">CN=root.example.com,O=ACME</Data></EventData>',
+            ]
+        ),
+        "ts": st.floats(
+            min_value=1700000000.0, max_value=2000000000.0, allow_nan=False, allow_infinity=False
+        ),
+        "rssi": st.integers(min_value=-95, max_value=-30),
+        "os": st.sampled_from(["windows", "macos", "linux"]),
+        "network_mode": st.sampled_from(["enterprise", "captive", "home", "unknown"]),
+        "raw_bssid": st.sampled_from(["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]),
+    }
+)
 
 
 @given(PII_PAYLOADS)
@@ -45,9 +61,7 @@ def test_redaction_strips_all_pii(tmp_state_dir, payload):
     assert isinstance(frame, TelemetryFrame)
     dump = frame.model_dump_json()
     for pat in DENY_PATTERNS:
-        assert not pat.search(dump), (
-            f"PII leaked: pattern {pat.pattern!r} matched in {dump!r}"
-        )
+        assert not pat.search(dump), f"PII leaked: pattern {pat.pattern!r} matched in {dump!r}"
 
 
 def test_extra_keys_rejected_by_schema(tmp_state_dir):

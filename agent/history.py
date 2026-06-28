@@ -10,6 +10,7 @@ Decisions:
   PII upstream; encryption-at-rest deferred to v1.x).
 - D-HISTORY-04: ``user_data_dir`` (durable user data) — NOT ``user_cache_dir``.
 """
+
 from __future__ import annotations
 
 import json
@@ -73,7 +74,8 @@ def write_diagnosis(
             "VALUES (?, ?, ?, ?, ?)",
             (ts, verdict_json, telemetry_json, SCHEMA_VERSION, consent_level),
         )
-        new_id = int(cur.lastrowid)
+        assert cur.lastrowid is not None  # INSERT always sets lastrowid
+        new_id = cur.lastrowid
         # Auto-prune (D-HISTORY-02).
         cutoff = time.time() - (DEFAULT_RETENTION_DAYS * 86400)
         con.execute("DELETE FROM diagnoses WHERE ts < ?", (cutoff,))
@@ -86,8 +88,7 @@ def list_diagnoses(limit: int = 100) -> list[dict]:
     con = _open()
     try:
         cur = con.execute(
-            "SELECT id, ts, schema_version, consent_level "
-            "FROM diagnoses ORDER BY ts DESC LIMIT ?",
+            "SELECT id, ts, schema_version, consent_level FROM diagnoses ORDER BY ts DESC LIMIT ?",
             (limit,),
         )
         return [
@@ -158,10 +159,7 @@ def set_retention_days(days: int) -> None:
     """D-HISTORY-02: configurable retention; takes effect at next write_diagnosis()."""
     con = _open()
     try:
-        con.execute(
-            "CREATE TABLE IF NOT EXISTS history_config "
-            "(key TEXT PRIMARY KEY, value TEXT)"
-        )
+        con.execute("CREATE TABLE IF NOT EXISTS history_config (key TEXT PRIMARY KEY, value TEXT)")
         con.execute(
             "INSERT INTO history_config (key, value) VALUES ('retention_days', ?) "
             "ON CONFLICT(key) DO UPDATE SET value = excluded.value",

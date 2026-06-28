@@ -5,6 +5,7 @@ ONLY shared abstraction between per-OS collectors. The schema (TelemetryFrame)
 IS the contract; per-OS branches MUST go through ``agent.redaction.redact_to_schema``
 to construct frames.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

@@ -3,6 +3,7 @@
 Phase 4 deliberately placed ``[Phase 5]`` markers in the consent prompt and
 PRIVACY.md as removable seeds. This test asserts the cleanup ran.
 """
+
 from __future__ import annotations
 
 import re
@@ -36,6 +37,4 @@ def test_no_phase5_annotations_in_privacy_md():
     if not p.exists():
         return
     text = p.read_text(encoding="utf-8")
-    assert "[Phase 5]" not in text, (
-        "PRIVACY.md still contains [Phase 5] annotation"
-    )
+    assert "[Phase 5]" not in text, "PRIVACY.md still contains [Phase 5] annotation"

@@ -1,4 +1,5 @@
 """Shared test fixtures for the agent test suite."""
+
 from __future__ import annotations
 
 import time

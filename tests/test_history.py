@@ -1,4 +1,5 @@
 """History persistence (AGENT-07 + D-HISTORY-01..04) — freezegun + SQLite WAL."""
+
 from __future__ import annotations
 
 import json
@@ -63,9 +64,7 @@ def test_write_and_read_diagnosis(tmp_state_dir, synthetic_frame):
 
     verdict = _stub_verdict()
     window = [synthetic_frame for _ in range(5)]
-    diag_id = write_diagnosis(
-        verdict=verdict, telemetry_window=window, consent_level="local"
-    )
+    diag_id = write_diagnosis(verdict=verdict, telemetry_window=window, consent_level="local")
     assert isinstance(diag_id, int) and diag_id > 0
 
     rows = list_diagnoses()

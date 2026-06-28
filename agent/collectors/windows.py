@@ -21,6 +21,7 @@ Why only the 6-value AuthEventClass enum:
     - The current 6 values cover the high-confidence dogfood signal set.
     - Unmapped IDs degrade safely to ``"none"`` (no string leakage).
 """
+
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
@@ -47,12 +48,12 @@ CHANNEL = "Microsoft-Windows-WLAN-AutoConfig/Operational"
 # Win 11 24H2 EAP-TLS regression (Microsoft Q&A 2025-26) is captured by the
 # 11006 -> eap_fail mapping (Pitfall 10).
 _EVENT_ID_TO_AUTH_CLASS: dict[int, str] = {
-    8001: "8021x_success",   # Wireless security started -> success-track
-    8002: "8021x_success",   # Wireless security succeeded
-    8003: "8021x_fail",      # Wireless security failed (generic)
-    11006: "eap_fail",       # Explicit EAP failure received
-    11010: "8021x_fail",     # Association failed (re-uses 8021x_fail; schema
-                             # has no "association_fail" enum at v1)
+    8001: "8021x_success",  # Wireless security started -> success-track
+    8002: "8021x_success",  # Wireless security succeeded
+    8003: "8021x_fail",  # Wireless security failed (generic)
+    11006: "eap_fail",  # Explicit EAP failure received
+    11010: "8021x_fail",  # Association failed (re-uses 8021x_fail; schema
+    # has no "association_fail" enum at v1)
     # 11005 (association attempt) and 12013 (profile mismatch) are
     # intentionally NOT mapped — they have no clean equivalents in the
     # current schema. They become "none" via dict.get(...).
@@ -97,9 +98,7 @@ def query_recent_events(seconds_back: int = 30) -> list[tuple[int, str]]:
     if win32evtlog is None:
         return []
     flags = win32evtlog.EvtQueryReverseDirection
-    xpath = (
-        f"*[System[TimeCreated[timediff(@SystemTime) <= {seconds_back * 1000}]]]"
-    )
+    xpath = f"*[System[TimeCreated[timediff(@SystemTime) <= {seconds_back * 1000}]]]"
     try:
         handle = win32evtlog.EvtQuery(CHANNEL, flags, xpath, None)
     except Exception:

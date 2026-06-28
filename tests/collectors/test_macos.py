@@ -19,6 +19,7 @@ These tests assert:
    substring escapes through ``MacOSCollector.sample().model_dump_json()``.
 8. Suite runs on every OS in CI because CoreWLAN + ``subprocess.run`` are mocked.
 """
+
 from __future__ import annotations
 
 import json
@@ -31,23 +32,34 @@ import pytest
 # Canned `log show --style ndjson` output — one JSON record per line.
 # Mix of association success, EAPOL handshake failure, EAP auth failure.
 # ---------------------------------------------------------------------------
-CANNED_LOG_NDJSON = "\n".join([
-    json.dumps({
-        "subsystem": "com.apple.wifi", "category": "Default",
-        "eventMessage": "Association complete",
-        "timestamp": "2026-05-10 14:00:00.000",
-    }),
-    json.dumps({
-        "subsystem": "com.apple.eapol", "category": "Default",
-        "eventMessage": "EAPOL: 4-way handshake failure",
-        "timestamp": "2026-05-10 14:00:01.000",
-    }),
-    json.dumps({
-        "subsystem": "com.apple.wifi", "category": "Default",
-        "eventMessage": "EAP authentication failed",
-        "timestamp": "2026-05-10 14:00:02.000",
-    }),
-])
+CANNED_LOG_NDJSON = "\n".join(
+    [
+        json.dumps(
+            {
+                "subsystem": "com.apple.wifi",
+                "category": "Default",
+                "eventMessage": "Association complete",
+                "timestamp": "2026-05-10 14:00:00.000",
+            }
+        ),
+        json.dumps(
+            {
+                "subsystem": "com.apple.eapol",
+                "category": "Default",
+                "eventMessage": "EAPOL: 4-way handshake failure",
+                "timestamp": "2026-05-10 14:00:01.000",
+            }
+        ),
+        json.dumps(
+            {
+                "subsystem": "com.apple.wifi",
+                "category": "Default",
+                "eventMessage": "EAP authentication failed",
+                "timestamp": "2026-05-10 14:00:02.000",
+            }
+        ),
+    ]
+)
 
 
 @pytest.fixture
@@ -113,12 +125,21 @@ def mock_baseline(mocker):
     }
     fake_psutil.net_io_counters.return_value = {
         "en0": MagicMock(
-            bytes_sent=0, bytes_recv=0, errin=0, errout=0, dropin=0, dropout=0,
+            bytes_sent=0,
+            bytes_recv=0,
+            errin=0,
+            errout=0,
+            dropin=0,
+            dropout=0,
         ),
     }
     fake_icmp = mocker.patch("agent.collectors.baseline.icmplib")
     fake_icmp.ping.return_value = MagicMock(
-        min_rtt=10, avg_rtt=12, max_rtt=15, packet_loss=0.0, jitter=1.0,
+        min_rtt=10,
+        avg_rtt=12,
+        max_rtt=15,
+        packet_loss=0.0,
+        jitter=1.0,
     )
     # Force baseline._detect_os to return macos regardless of platform.system().
     mocker.patch("agent.collectors.baseline._detect_os", return_value="macos")
@@ -126,7 +147,10 @@ def mock_baseline(mocker):
 
 
 def test_signed_python_path_populates_bssid(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
 ):
     """Signed-Python path: CWInterface.bssid() returns a real MAC; frame.bssid is the
     64-char SHA-256 hex (per plan 04-05 ``bssid_hash`` contract)."""
@@ -141,7 +165,10 @@ def test_signed_python_path_populates_bssid(
 
 
 def test_adhoc_signed_path_handles_none_bssid(
-    tmp_state_dir, mock_corewlan_adhoc_signed, mock_log_show, mock_baseline,
+    tmp_state_dir,
+    mock_corewlan_adhoc_signed,
+    mock_log_show,
+    mock_baseline,
 ):
     """Pitfall 11: ad-hoc-signed Python on Sonoma 14.4+ returns None from bssid().
     Collector must NOT crash; must emit a frame with schema-required bssid populated."""
@@ -158,7 +185,11 @@ def test_adhoc_signed_path_handles_none_bssid(
 
 
 def test_default_path_uses_log_show_non_sudo(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline, monkeypatch,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
+    monkeypatch,
 ):
     """D-PRIV-04: default code path is `log show` non-sudo; never invokes sudo/wdutil."""
     monkeypatch.delenv("WIFI_DIAG_USE_WDUTIL", raising=False)
@@ -172,7 +203,11 @@ def test_default_path_uses_log_show_non_sudo(
 
 
 def test_wdutil_opt_in_via_env_var(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline, monkeypatch,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
+    monkeypatch,
 ):
     """D-PRIV-04: WIFI_DIAG_USE_WDUTIL=1 is the ONLY way to reach the sudo wdutil path."""
     monkeypatch.setenv("WIFI_DIAG_USE_WDUTIL", "1")
@@ -185,7 +220,11 @@ def test_wdutil_opt_in_via_env_var(
 
 
 def test_log_show_predicate_targets_apple_wifi(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline, monkeypatch,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
+    monkeypatch,
 ):
     """Unified-logging predicate must scope to the com.apple.wifi subsystem."""
     monkeypatch.delenv("WIFI_DIAG_USE_WDUTIL", raising=False)
@@ -197,7 +236,11 @@ def test_log_show_predicate_targets_apple_wifi(
 
 
 def test_eapol_log_line_maps_to_eap_fail(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline, monkeypatch,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
+    monkeypatch,
 ):
     """Canned log show ndjson has EAPOL failure + EAP failure lines; auth_event_class
     must map to one of the schema's failure-class enum values."""
@@ -211,7 +254,11 @@ def test_eapol_log_line_maps_to_eap_fail(
 
 
 def test_no_raw_log_lines_in_emitted_frame(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline, monkeypatch,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
+    monkeypatch,
 ):
     """Pitfall 6 / privacy boundary: collector emits a TelemetryFrame whose
     JSON serialization contains NO raw log show substrings."""
@@ -227,7 +274,10 @@ def test_no_raw_log_lines_in_emitted_frame(
 
 
 def test_collector_runs_on_non_macos_via_mocks(
-    tmp_state_dir, mock_corewlan, mock_log_show, mock_baseline,
+    tmp_state_dir,
+    mock_corewlan,
+    mock_log_show,
+    mock_baseline,
 ):
     """Sanity: the entire test suite must run on Win/Linux CI runners — proves that
     CoreWLAN + subprocess are fully mocked and no real macOS-only system call leaks."""

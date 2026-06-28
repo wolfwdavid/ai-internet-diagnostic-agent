@@ -5,6 +5,7 @@ NO Windows service / launchd / systemd-user registration at v1.
 
 Pitfall 8 mitigation: stale PID guard via is_pid_alive (no zombie reads).
 """
+
 from __future__ import annotations
 
 import os
@@ -47,9 +48,7 @@ def is_pid_alive(pid: int) -> bool:
             PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
             STILL_ACTIVE = 259
             kernel32 = ctypes.windll.kernel32
-            handle = kernel32.OpenProcess(
-                PROCESS_QUERY_LIMITED_INFORMATION, False, pid
-            )
+            handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
             if not handle:
                 return False
             exit_code = ctypes.c_ulong()

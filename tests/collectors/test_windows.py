@@ -11,13 +11,13 @@ System log; both admin-only or admin-recommended). These tests assert:
 4. ``redact_to_schema`` (plan 04-05) is the single boundary — no raw XML
    substring escapes through ``WindowsCollector.sample().model_dump_json()``.
 """
+
 from __future__ import annotations
 
 import sys
 from unittest.mock import MagicMock
 
 import pytest
-
 
 CANNED_EVENT_8003_XML = """<?xml version="1.0" encoding="utf-8"?>
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
@@ -32,13 +32,16 @@ CANNED_EVENT_8003_XML = """<?xml version="1.0" encoding="utf-8"?>
 </Event>"""
 
 CANNED_EVENT_8001_XML = CANNED_EVENT_8003_XML.replace(
-    "<EventID>8003</EventID>", "<EventID>8001</EventID>",
+    "<EventID>8003</EventID>",
+    "<EventID>8001</EventID>",
 )
 CANNED_EVENT_11006_XML = CANNED_EVENT_8003_XML.replace(
-    "<EventID>8003</EventID>", "<EventID>11006</EventID>",
+    "<EventID>8003</EventID>",
+    "<EventID>11006</EventID>",
 )
 CANNED_EVENT_99999_XML = CANNED_EVENT_8003_XML.replace(
-    "<EventID>8003</EventID>", "<EventID>99999</EventID>",
+    "<EventID>8003</EventID>",
+    "<EventID>99999</EventID>",
 )
 
 
@@ -63,7 +66,8 @@ def test_parses_event_8003_to_eap_fail_or_8021x_fail(mock_win32evtlog):
     from agent.collectors.windows import to_auth_event_class
 
     result = to_auth_event_class(8003)
-    # Schema enum values: none / 8021x_success / 8021x_fail / radius_timeout / eap_fail / eapol_m3_timeout.
+    # Schema enum values: none / 8021x_success / 8021x_fail / radius_timeout /
+    # eap_fail / eapol_m3_timeout.
     # Either "eap_fail" or "8021x_fail" is acceptable for "Wireless security failed".
     assert result in ("eap_fail", "8021x_fail"), (
         f"Event 8003 mapped to {result!r}, expected eap_fail or 8021x_fail"
@@ -75,9 +79,7 @@ def test_parses_event_8001_to_8021x_success_or_none(mock_win32evtlog):
 
     result = to_auth_event_class(8001)
     # 8001 = "Wireless security started" — schema has no "started"; accept 8021x_success or none.
-    assert result in ("8021x_success", "none"), (
-        f"Event 8001 mapped to {result!r}"
-    )
+    assert result in ("8021x_success", "none"), f"Event 8001 mapped to {result!r}"
 
 
 def test_parses_event_11006_to_eap_fail(mock_win32evtlog):
@@ -113,12 +115,21 @@ def test_no_raw_xml_in_emitted_frame(tmp_state_dir, mock_win32evtlog, mocker):
     }
     fake_psutil.net_io_counters.return_value = {
         "Wi-Fi": MagicMock(
-            bytes_sent=0, bytes_recv=0, errin=0, errout=0, dropin=0, dropout=0,
+            bytes_sent=0,
+            bytes_recv=0,
+            errin=0,
+            errout=0,
+            dropin=0,
+            dropout=0,
         ),
     }
     fake_icmp = mocker.patch("agent.collectors.baseline.icmplib")
     fake_host = MagicMock(
-        min_rtt=10, avg_rtt=12, max_rtt=15, packet_loss=0.0, jitter=1.0,
+        min_rtt=10,
+        avg_rtt=12,
+        max_rtt=15,
+        packet_loss=0.0,
+        jitter=1.0,
     )
     fake_icmp.ping.return_value = fake_host
 

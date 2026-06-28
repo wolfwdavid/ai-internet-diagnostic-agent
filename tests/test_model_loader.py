@@ -9,6 +9,7 @@ Verifies:
   instructive SystemExit (not raw RepositoryNotFoundError /
   RevisionNotFoundError) when the HF Hub model repo or tag is missing.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -27,9 +28,7 @@ from agent.model_loader import (
 def test_revision_pinned_to_v1_0_0():
     from agent.model_loader import MODEL_REPO, MODEL_REVISION
 
-    assert MODEL_REVISION == "v1.0.0", (
-        f"Pitfall 7 — MODEL_REVISION drifted: {MODEL_REVISION!r}"
-    )
+    assert MODEL_REVISION == "v1.0.0", f"Pitfall 7 — MODEL_REVISION drifted: {MODEL_REVISION!r}"
     assert MODEL_REPO == "WolfDavid/ai-internet-diagnostic-model"
 
 
@@ -43,9 +42,7 @@ def test_local_files_only_first_then_network_fallback(tmp_state_dir, mocker, tmp
     snap = tmp_path / "snap"
     snap.mkdir()
     side_effects = [LocalEntryNotFoundError("not in cache"), str(snap)]
-    mock_dl = mocker.patch(
-        "agent.model_loader.snapshot_download", side_effect=side_effects
-    )
+    mock_dl = mocker.patch("agent.model_loader.snapshot_download", side_effect=side_effects)
 
     from agent.model_loader import fetch_or_use_cached
 
@@ -65,9 +62,7 @@ def test_local_files_only_first_then_network_fallback(tmp_state_dir, mocker, tmp
 def test_local_files_only_succeeds_no_network_call(tmp_state_dir, mocker, tmp_path):
     snap = tmp_path / "snap"
     snap.mkdir()
-    mock_dl = mocker.patch(
-        "agent.model_loader.snapshot_download", return_value=str(snap)
-    )
+    mock_dl = mocker.patch("agent.model_loader.snapshot_download", return_value=str(snap))
 
     from agent.model_loader import fetch_or_use_cached
 
@@ -89,9 +84,7 @@ def test_path_for_returns_artifacts_subdir(tmp_state_dir, mocker, tmp_path):
     assert "artifacts" in str(p), (
         f"path_for must place artifact under an 'artifacts' subdir; got {p}"
     )
-    assert p.name == "classifier.joblib", (
-        f"path_for filename mismatch; got {p.name}"
-    )
+    assert p.name == "classifier.joblib", f"path_for filename mismatch; got {p.name}"
 
 
 # ---------------------------------------------------------------------------
@@ -104,9 +97,7 @@ def test_path_for_returns_artifacts_subdir(tmp_state_dir, mocker, tmp_path):
 # ---------------------------------------------------------------------------
 
 
-def _make_snapshot_download_mock(
-    first_exc: BaseException, second_exc: BaseException | None
-):
+def _make_snapshot_download_mock(first_exc: BaseException, second_exc: BaseException | None):
     """Return a mock callable that raises ``first_exc`` on the first call and
     ``second_exc`` on the second call (or returns a fake path if
     ``second_exc`` is None)."""
@@ -124,9 +115,7 @@ def _make_snapshot_download_mock(
     return _mock
 
 
-def test_fetch_or_use_cached_repo_not_found(
-    tmp_state_dir, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_fetch_or_use_cached_repo_not_found(tmp_state_dir, monkeypatch: pytest.MonkeyPatch) -> None:
     """When HF Hub returns 404 on the repo, fetch_or_use_cached raises
     SystemExit with an instructive message naming the repo."""
     mock_dl = _make_snapshot_download_mock(
@@ -142,9 +131,7 @@ def test_fetch_or_use_cached_repo_not_found(
     assert "WolfDavid/ai-internet-diagnostic-model" in msg, (
         f"SystemExit msg missing repo name: {msg!r}"
     )
-    assert "not found" in msg.lower(), (
-        f"SystemExit msg missing 'not found' guidance: {msg!r}"
-    )
+    assert "not found" in msg.lower(), f"SystemExit msg missing 'not found' guidance: {msg!r}"
 
 
 def test_fetch_or_use_cached_revision_not_found(
@@ -162,9 +149,5 @@ def test_fetch_or_use_cached_revision_not_found(
         fetch_or_use_cached()
 
     msg = str(exc_info.value)
-    assert "v1.0.0" in msg, (
-        f"SystemExit msg missing revision name: {msg!r}"
-    )
-    assert "tag" in msg.lower(), (
-        f"SystemExit msg missing 'tag' guidance: {msg!r}"
-    )
+    assert "v1.0.0" in msg, f"SystemExit msg missing revision name: {msg!r}"
+    assert "tag" in msg.lower(), f"SystemExit msg missing 'tag' guidance: {msg!r}"

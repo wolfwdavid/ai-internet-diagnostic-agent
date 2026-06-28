@@ -6,6 +6,7 @@ PermanentTransportError -> fail fast (schema mismatch, 4xx, repo deleted).
 The classification is asserted by tests/phase05/test_transport.py against
 the observed exception types in agent/transport/EXCEPTION_NOTES.md.
 """
+
 from __future__ import annotations
 
 

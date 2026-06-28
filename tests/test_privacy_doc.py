@@ -1,4 +1,5 @@
 """PRIVACY.md is written FROM the schema allowlist (PRIV-02)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -16,6 +17,4 @@ def test_privacy_md_exists_and_references_schema():
     )
     # Each TelemetryFrame field must appear at least once
     for field in TelemetryFrame.model_fields:
-        assert field in content, (
-            f"PRIVACY.md is missing reference to schema field {field!r}"
-        )
+        assert field in content, f"PRIVACY.md is missing reference to schema field {field!r}"

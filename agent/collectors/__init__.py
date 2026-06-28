@@ -14,6 +14,7 @@ Fallback contract:
     ``[windows]``), ``_BaselineOnlyCollector`` returns the cross-OS
     baseline payload through the redaction boundary.
 """
+
 from __future__ import annotations
 
 import platform
@@ -27,6 +28,7 @@ def make_collector() -> Collector:
     if sys_name == "Windows":
         try:
             from agent.collectors.windows import WindowsCollector
+
             return WindowsCollector()
         except ImportError:
             pass
@@ -34,6 +36,7 @@ def make_collector() -> Collector:
         # Plan 04-03 lands MacOSCollector
         try:
             from agent.collectors.macos import MacOSCollector  # type: ignore[import-not-found]
+
             return MacOSCollector()
         except ImportError:
             pass
@@ -41,6 +44,7 @@ def make_collector() -> Collector:
         # Plan 04-04 lands LinuxCollector
         try:
             from agent.collectors.linux import LinuxCollector  # type: ignore[import-not-found]
+
             return LinuxCollector()
         except ImportError:
             pass
@@ -55,4 +59,5 @@ class _BaselineOnlyCollector(Collector):
     def sample(self):
         from agent.collectors.baseline import collect_baseline
         from agent.redaction import redact_to_schema
+
         return redact_to_schema(collect_baseline())

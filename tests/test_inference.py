@@ -8,6 +8,7 @@ Verifies:
   drives a real LogisticRegression artifact through the function body and
   asserts top_k is a full ranking summing to 1).
 """
+
 from __future__ import annotations
 
 import sys
@@ -18,9 +19,7 @@ from wifi_diag_schema import Verdict
 
 def _make_window(synthetic_frame, n: int = 30):
     return [
-        synthetic_frame.model_copy(
-            update={"timestamp": synthetic_frame.timestamp + i}
-        )
+        synthetic_frame.model_copy(update={"timestamp": synthetic_frame.timestamp + i})
         for i in range(n)
     ]
 
@@ -72,18 +71,14 @@ def test_inference_does_not_import_anthropic(tmp_state_dir, synthetic_frame):
     except ModuleNotFoundError:
         # Acceptable if numpy/pandas/etc. aren't installed yet — the point of
         # this test is the assertion below.
-        pytest.skip(
-            "agent.inference dependencies not installed; skipping anthropic-absence smoke"
-        )
+        pytest.skip("agent.inference dependencies not installed; skipping anthropic-absence smoke")
     assert "anthropic" not in sys.modules, (
         "AGENT-05 violation: agent.inference must NOT import anthropic; "
         "the narrator's [llm] extra is intentionally not in agent deps."
     )
 
 
-def test_predict_verdict_loads_real_artifact(
-    tmp_state_dir, synthetic_frame, tmp_path
-):
+def test_predict_verdict_loads_real_artifact(tmp_state_dir, synthetic_frame, tmp_path):
     """Non-mocked integration: verifies _predict_verdict_impl was actually vendored.
 
     Builds a tiny fixture classifier with the same predict_proba contract as the
@@ -111,17 +106,12 @@ def test_predict_verdict_loads_real_artifact(
     X_train = rng.normal(size=(50, n_features))
     # Each class appears at least once so the classifier sees all 10 classes.
     y_train = np.tile(np.arange(n_classes), 5)[:50]
-    clf = HistGradientBoostingClassifier(max_iter=50, random_state=42).fit(
-        X_train, y_train
-    )
+    clf = HistGradientBoostingClassifier(max_iter=50, random_state=42).fit(X_train, y_train)
     artifact_path = tmp_path / "classifier.joblib"
     joblib.dump(clf, artifact_path)
 
     # Window whose last frame has network_mode="enterprise" (8 classes enabled).
-    window = [
-        synthetic_frame.model_copy(update={"network_mode": "enterprise"})
-        for _ in range(5)
-    ]
+    window = [synthetic_frame.model_copy(update={"network_mode": "enterprise"}) for _ in range(5)]
 
     verdict = _predict_verdict_impl(artifact_path, window)
 
@@ -133,9 +123,7 @@ def test_predict_verdict_loads_real_artifact(
     )
     assert all(0.0 <= float(p) <= 1.0 for _, p in verdict.top_k)
     total = sum(float(p) for _, p in verdict.top_k)
-    assert abs(total - 1.0) < 1e-6, (
-        f"top_k probabilities must sum to 1; got {total}"
-    )
+    assert abs(total - 1.0) < 1e-6, f"top_k probabilities must sum to 1; got {total}"
     # top_class corresponds to the highest top_k entry (verbatim vendor behavior).
     assert verdict.top_class == verdict.top_k[0][0]
     assert verdict.confidence == verdict.top_k[0][1]

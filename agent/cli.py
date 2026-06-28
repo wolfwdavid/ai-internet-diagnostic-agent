@@ -5,6 +5,7 @@ start / stop / pause / status / diagnose / doctor / privacy / show-telemetry
 Pause = sampling-only stop; the daemon process stays alive.
 show-telemetry = redacted preview of recent buffer (transparency-by-default).
 """
+
 from __future__ import annotations
 
 import json
@@ -61,9 +62,7 @@ def status() -> None:
     console.print(f"undiagnosed drops in buffer: {len(drops)}")
     if drops:
         most_recent = drops[0]
-        console.print(
-            f"  last drop: ts={most_recent['ts']:.0f} reason={most_recent['reason']}"
-        )
+        console.print(f"  last drop: ts={most_recent['ts']:.0f} reason={most_recent['reason']}")
 
 
 @app.command()
@@ -96,24 +95,18 @@ def diagnose(
     to the local-only path (D-LIVE-04) with the amber Local-mode banner.
     """
     if consent is not None and consent not in ("local", "redacted", "ssid"):
-        raise typer.BadParameter(
-            f"--consent must be one of local|redacted|ssid (got {consent!r})"
-        )
+        raise typer.BadParameter(f"--consent must be one of local|redacted|ssid (got {consent!r})")
     chosen: ConsentLevel = prompt_consent(non_interactive=consent)  # type: ignore[arg-type]
 
     if cloud:
-        _run_cloud_diagnosis(
-            consent=chosen, space_id=space_id, pair_code=pair_code
-        )
+        _run_cloud_diagnosis(consent=chosen, space_id=space_id, pair_code=pair_code)
         return
 
     result = _run_diagnosis(chosen)
     console.print(result)
 
 
-def _run_cloud_diagnosis(
-    consent: ConsentLevel, space_id: str, pair_code: str | None
-) -> None:
+def _run_cloud_diagnosis(consent: ConsentLevel, space_id: str, pair_code: str | None) -> None:
     """`agent diagnose --cloud` (AGENT-08): SSE-stream to Space, fall back to
     local on tenacity exhaustion (D-LIVE-04)."""
     from agent.transport.client import stream_diagnose
@@ -130,18 +123,14 @@ def _run_cloud_diagnosis(
     frames = buffer.snapshot_recent(120)
     if not frames:
         console.print(
-            "no telemetry in buffer — has the daemon been running? "
-            "Run `agent start` first."
+            "no telemetry in buffer — has the daemon been running? Run `agent start` first."
         )
         return
 
     owner_key = os.environ.get("WIFI_DIAG_OWNER_KEY")
     try:
         for chunk in stream_diagnose(space_id, frames, owner_key, pair_code):
-            console.print(
-                f"[{time.strftime('%H:%M:%S')}] "
-                f"{chunk.get('state', '?')}: {chunk}"
-            )
+            console.print(f"[{time.strftime('%H:%M:%S')}] {chunk.get('state', '?')}: {chunk}")
             if chunk.get("state") == "complete":
                 verdict = chunk.get("verdict") or {}
                 console.print_json(data=verdict)
@@ -168,10 +157,7 @@ def _run_diagnosis(consent: ConsentLevel) -> str:
     # 1. Snapshot recent buffer (D-AGENT-01 — last 120s rolling buffer).
     window = buffer.snapshot_recent(120)
     if not window:
-        return (
-            "no telemetry in buffer — has the daemon been running? "
-            "Run `agent start` first."
-        )
+        return "no telemetry in buffer — has the daemon been running? Run `agent start` first."
 
     # 2. Local-only inference. Phase 4 ships only consent=local; redacted/ssid
     # are visibly-disabled in the consent prompt and prompt_consent() returns
@@ -197,9 +183,7 @@ def _run_diagnosis(consent: ConsentLevel) -> str:
     if flagged:
         buffer.mark_diagnosed(flagged[0]["id"])
 
-    return (
-        f"verdict #{diag_id}: {verdict.headline}\n  fix: {verdict.suggested_fix}"
-    )
+    return f"verdict #{diag_id}: {verdict.headline}\n  fix: {verdict.suggested_fix}"
 
 
 @app.command()
@@ -227,9 +211,7 @@ def show_telemetry(
     """Preview the redacted buffer contents (transparency-by-default per D-AGENT-03)."""
     frames = buffer.snapshot_recent(120)
     if format == "json":
-        console.print_json(
-            json.dumps([f.model_dump(mode="json") for f in frames], default=str)
-        )
+        console.print_json(json.dumps([f.model_dump(mode="json") for f in frames], default=str))
         return
     table = Table(title=f"buffer snapshot — {len(frames)} frames (last 120s)")
     table.add_column("ts")
@@ -297,12 +279,8 @@ def history_show(diag_id: int) -> None:
 
 @history_app.command("clear")
 def history_clear(
-    keep_last: int = typer.Option(
-        0, "--keep-last", help="Keep the most-recent N rows"
-    ),
-    confirm: bool = typer.Option(
-        False, "--confirm", help="Skip the interactive confirmation"
-    ),
+    keep_last: int = typer.Option(0, "--keep-last", help="Keep the most-recent N rows"),
+    confirm: bool = typer.Option(False, "--confirm", help="Skip the interactive confirmation"),
 ) -> None:
     """Delete history rows (with optional retention of the most recent N)."""
     from agent import history as history_mod

@@ -11,6 +11,7 @@ These tests document the RED -> GREEN contract for the new Step 4b mapping
 block in ``redact_to_schema`` (insert between the existing Step 4 enum
 coercion and the Step 5 defaults block).
 """
+
 from __future__ import annotations
 
 from wifi_diag_schema import TelemetryFrame

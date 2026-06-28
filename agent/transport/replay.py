@@ -11,6 +11,7 @@ Production caller (``agent/transport/client.py``):
   - On ``state=complete``, the cursor advances to the latest frame in the window
     so a fresh ``agent diagnose --cloud`` starts from a clean slate.
 """
+
 from __future__ import annotations
 
 import json
@@ -59,9 +60,7 @@ def save_last_acked_ts(ts: float, session_hash: str | None = None) -> None:
     crash-during-write.
     """
     p = _cursor_path()
-    payload = json.dumps(
-        {"last_acked_ts": float(ts), "session_hash": session_hash}
-    )
+    payload = json.dumps({"last_acked_ts": float(ts), "session_hash": session_hash})
     tmp = p.with_suffix(".json.tmp")
     tmp.write_text(payload, encoding="utf-8")
     if sys.platform != "win32":

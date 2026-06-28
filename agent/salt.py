@@ -7,6 +7,7 @@ standard ACL on Windows). Subsequent calls return the same bytes.
 The salt makes the BSSID hash deterministic per-install but unlinkable across
 installs. Used by ``agent.redaction.bssid_hash``.
 """
+
 from __future__ import annotations
 
 import os

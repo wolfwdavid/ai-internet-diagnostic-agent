@@ -4,6 +4,7 @@ The baseline collector provides ~60% of the classifier signal regardless of OS
 (adapter counters + ICMP continuity). Per-OS collectors layer event-log signal
 on top.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock
@@ -20,8 +21,12 @@ def mock_psutil(mocker):
     }
     fake.net_io_counters.return_value = {
         "Wi-Fi": MagicMock(
-            bytes_sent=1000, bytes_recv=2000,
-            errin=0, errout=0, dropin=0, dropout=0,
+            bytes_sent=1000,
+            bytes_recv=2000,
+            errin=0,
+            errout=0,
+            dropin=0,
+            dropout=0,
         ),
     }
     return fake
@@ -56,6 +61,4 @@ def test_icmp_ping_populates_continuity(tmp_state_dir, mock_psutil, mock_icmplib
     payload = collect_baseline()
     # Whatever the schema field for ping RTT is — assert it's populated.
     ping_keys = [k for k in payload if "ping" in k.lower() or "rtt" in k.lower()]
-    assert ping_keys, (
-        f"baseline must produce a ping/rtt field; got keys: {list(payload.keys())}"
-    )
+    assert ping_keys, f"baseline must produce a ping/rtt field; got keys: {list(payload.keys())}"

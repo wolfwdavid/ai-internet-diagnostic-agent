@@ -1,4 +1,5 @@
 """Wave 0 RED-state tests for the rolling 120s buffer (D-AGENT-01, D-AGENT-04)."""
+
 from __future__ import annotations
 
 import time

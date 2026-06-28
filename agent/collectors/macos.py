@@ -14,6 +14,7 @@ Per ARCHITECTURE.md Anti-Pattern 6, this collector shares NOTHING with the
 Windows or Linux collectors beyond the schema. Every emission goes through
 ``redact_to_schema`` (plan 04-05) — the single privacy boundary.
 """
+
 from __future__ import annotations
 
 import json
@@ -77,11 +78,16 @@ def _query_log_show(window_seconds: int = 30) -> list[str]:
         cmd = ["sudo", "wdutil", "log", "+wifi", "+eapol"]
     else:
         cmd = [
-            "log", "show",
-            "--predicate", 'subsystem == "com.apple.wifi" OR subsystem == "com.apple.eapol"',
-            "--info", "--debug",
-            "--last", f"{window_seconds}s",
-            "--style", "ndjson",
+            "log",
+            "show",
+            "--predicate",
+            'subsystem == "com.apple.wifi" OR subsystem == "com.apple.eapol"',
+            "--info",
+            "--debug",
+            "--last",
+            f"{window_seconds}s",
+            "--style",
+            "ndjson",
         ]
     try:
         out = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
